@@ -1,10 +1,13 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { App } from "./App.jsx";
+import { KnowledgeApp } from "./kb/KnowledgeApp.jsx";
 import "./styles.css";
+import "./detail-overrides.css";
+import "./knowledge-product.css";
+import "./kb/product-fit.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <App />
+    <KnowledgeApp />
   </React.StrictMode>,
 );

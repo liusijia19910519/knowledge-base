@@ -8,6 +8,8 @@ When implementing from a selected generated mock, treat that image as the source
 
 ## Durable prototype decisions
 
+- All AI-oriented capabilities belong in the dedicated “问AI” workspace. Treat it as the complete AI workbench for prompting, knowledge context, skills/experts, attachments, voice input, task execution, results, citations, and conversation history; do not scatter new AI entry points across unrelated knowledge-management pages.
+
 - Render the application as a direct full-browser page without an outer black canvas, inset frame, page label, or rounded page shell.
 - Use restrained Codex-like UI typography and density for the sidebar and lightweight action controls.
 - Shortcut actions above the composer use flat icon-and-text styling, without pill borders or elevated button treatments.

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { publicAsset } from './publicAsset.js'
 import { createPortal } from 'react-dom'
 import {
   ArrowUp, BookBookmark, ChatCircleDots, File,
@@ -149,10 +150,10 @@ const conversationCopy = {
 }
 
 function Avatar({ small = false }) {
-  return <img className={small ? 'avatar avatar-small' : 'avatar'} src="/ai-agent-avatar-v2.png" alt="企业 AI 智能体" />
+  return <img className={small ? 'avatar avatar-small' : 'avatar'} src={publicAsset("/ai-agent-avatar-v2.png")} alt="企业 AI 智能体" />
 }
 
-function StandaloneDocumentPage({ name }) {
+export function StandaloneDocumentPage({ name }) {
   const [activeFormats, setActiveFormats] = useState(['bold'])
   const [toolbarCollapsed, setToolbarCollapsed] = useState(false)
   const [aiMessage, setAiMessage] = useState('')
@@ -226,7 +227,7 @@ function StandaloneDocumentPage({ name }) {
   return <main className="standalone-document-page">
     <header className="document-window-bar">
       <div className="document-window-title"><FileText size={20} weight="fill" /><strong>{name}</strong><StarFour size={18} /></div>
-      <div className="document-window-actions"><span>上次编辑：08-06</span><button><ShareNetwork size={18} />分享</button><button><PencilSimple size={18} />编辑<CaretDown size={14} /></button><button aria-label="更多操作"><DotsThree size={21} weight="bold" /></button><button aria-label="搜索"><MagnifyingGlass size={20} /></button><img className="avatar avatar-small" src="/user-avatar.png" alt="李鹏飞" /></div>
+      <div className="document-window-actions"><span>上次编辑：08-06</span><button><ShareNetwork size={18} />分享</button><button><PencilSimple size={18} />编辑<CaretDown size={14} /></button><button aria-label="更多操作"><DotsThree size={21} weight="bold" /></button><button aria-label="搜索"><MagnifyingGlass size={20} /></button><img className="avatar avatar-small" src={publicAsset("/user-avatar.png")} alt="李鹏飞" /></div>
     </header>
     <div className={`document-format-toolbar ${toolbarCollapsed ? 'collapsed' : ''}`} role="toolbar" aria-label="文档编辑工具栏">
       <div className="document-toolbar-controls">
@@ -929,14 +930,14 @@ export function App() {
         </section>
 
         <footer className="sidebar-profile">
-          <img src="/user-avatar.png" alt="李鹏飞" role="button" tabIndex={0} aria-haspopup="menu" aria-expanded={profileMenuOpen} onClick={() => setProfileMenuOpen(value => !value)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setProfileMenuOpen(value => !value) } }} />
+          <img src={publicAsset("/user-avatar.png")} alt="李鹏飞" role="button" tabIndex={0} aria-haspopup="menu" aria-expanded={profileMenuOpen} onClick={() => setProfileMenuOpen(value => !value)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setProfileMenuOpen(value => !value) } }} />
           <span className="sidebar-profile-copy"><strong>李鹏飞</strong><small>人力资源总监</small></span>
           <button className="sidebar-notification" aria-label="消息，3 条未读">
             <Bell size={18} />
             <span className="notification-badge" aria-hidden="true">3</span>
           </button>
           {profileMenuOpen && <div className="sidebar-profile-menu" role="menu">
-            <div className="sidebar-profile-menu-user"><img src="/user-avatar.png" alt="" /><span><strong>李鹏飞</strong><small>187298389</small></span></div>
+            <div className="sidebar-profile-menu-user"><img src={publicAsset("/user-avatar.png")} alt="" /><span><strong>李鹏飞</strong><small>187298389</small></span></div>
             <button type="button" role="menuitem" onClick={() => setProfileMenuOpen(false)}><Gear size={18} />个人设置</button>
             <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); const url = new URL(window.location.href); url.search = ''; url.hash = ''; url.searchParams.set('admin', '1'); window.location.assign(url.toString()) }}><Buildings size={18} />管理后台</button>
             <div className="sidebar-profile-appearance"><span><PaintRoller size={18} />外观</span><div role="group" aria-label="外观模式"><button className={colorMode === 'light' ? 'active' : ''} type="button" aria-pressed={colorMode === 'light'} onClick={() => setColorMode('light')}>浅色</button><button className={colorMode === 'dark' ? 'active' : ''} type="button" aria-pressed={colorMode === 'dark'} onClick={() => setColorMode('dark')}>深色</button></div></div>
@@ -960,7 +961,7 @@ export function App() {
             <button className="more-skills" aria-label="查看更多技能" title="更多技能" onClick={() => setActive('技能中心')}><CaretRight size={19} weight="bold" /></button>
           </div>
 
-          <div className="composer-mascot" aria-hidden="true"><img src="/workbuddy-cat-mascot.png" alt="" /></div>
+          <div className="composer-mascot" aria-hidden="true"><img src={publicAsset("/workbuddy-cat-mascot.png")} alt="" /></div>
           <div className={`composer ${sent ? 'sent' : ''}`}>
             {slashCapabilityOpen && <SlashCapabilityMenu onSkillSelect={insertSkill} onExpertSelect={chooseSlashExpert} />}
             {knowledgeMentionOpen && <KnowledgeMentionMenu onSelect={insertKnowledge} onMore={() => { setKnowledgeMentionOpen(false); setKnowledgeLibraryOpen(true) }} />}
@@ -1199,7 +1200,7 @@ function WorkspacePage({ initialProjectRequest }) {
         <p>让工作高效有序</p>
         <button type="button" onClick={() => setCreateOpen(true)}><Plus size={17} weight="bold" />创建空间</button>
       </div>
-      <img src="/workspace-team-illustration.png" alt="团队与 AI 数字员工协同办公" />
+      <img src={publicAsset("/workspace-team-illustration.png")} alt="团队与 AI 数字员工协同办公" />
     </header>
 
     <div className="workspace-section-heading">
@@ -1234,7 +1235,7 @@ function ApplicationsCenterPage() {
   const [selected, setSelected] = useState('')
   return <section className="applications-page">
     <header className="applications-hero">
-      <img src="/app-center-banner.png" alt="企业数字化协作场景" />
+      <img src={publicAsset("/app-center-banner.png")} alt="企业数字化协作场景" />
       <div className="applications-hero-copy"><h1>打造高效组织，从这里开始</h1><p>Build an efficient organization, start here.</p></div>
     </header>
     <div className="applications-grid">
@@ -1270,14 +1271,14 @@ const knowledgeDocumentSeed = [
   ['产品架构图', '我的知识库', '李鹏飞', '7月31日 09:27', 'favorite'],
 ]
 
-function KnowledgeHomeContent({ query, setQuery }) {
+function KnowledgeHomeContent({ query, setQuery, onOpenDocument }) {
   const [tab, setTab] = useState('recent')
   const visible = knowledgeDocumentSeed.filter(([title, location, owner, , group]) => (tab === 'recent' || tab === group) && `${title}${location}${owner}`.includes(query.trim()))
   return <>
     <header className="knowledge-home-header"><h1>主页</h1><label><MagnifyingGlass size={17} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索文档" /></label></header>
     <div className="knowledge-home-actions"><button><Plus size={22} weight="bold" /><span><strong>新建</strong><small>新建文档开始协作</small></span><CaretDown size={15} /></button><button><UploadSimple size={22} /><span><strong>上传</strong><small>上传本地文件</small></span><CaretDown size={15} /></button><button><MagicWand size={22} weight="fill" /><span><strong>模板库</strong><small>选择模板快速新建</small></span><CaretRight size={15} /></button></div>
     <div className="knowledge-home-toolbar"><div role="tablist" aria-label="文档范围">{[['recent', '最近访问'], ['owned', '我共享的'], ['shared', '与我共享'], ['favorite', '收藏']].map(([value, label]) => <button className={tab === value ? 'active' : ''} role="tab" aria-selected={tab === value} key={value} onClick={() => setTab(value)}>{label}</button>)}</div><button><List size={17} />显示设置</button></div>
-    <div className="knowledge-document-table"><div className="knowledge-document-row head"><span>标题</span><span>位置</span><span>所有者</span><span>最近访问</span><span /></div>{visible.map(([title, location, owner, time]) => <button className="knowledge-document-row" key={title}><span><File size={19} weight="fill" />{title}</span><span>{location}</span><span><UserCircle size={18} weight="fill" />{owner}</span><span>{time}</span><DotsThree size={19} /></button>)}</div>
+    <div className="knowledge-document-table"><div className="knowledge-document-row head"><span>标题</span><span>位置</span><span>所有者</span><span>最近访问</span><span /></div>{visible.map(([title, location, owner, time]) => <button className="knowledge-document-row" key={title} onClick={() => onOpenDocument?.(title)}><span><File size={19} weight="fill" />{title}</span><span>{location}</span><span><UserCircle size={18} weight="fill" />{owner}</span><span>{time}</span><DotsThree size={19} /></button>)}</div>
     {!visible.length && <div className="knowledge-empty"><MagnifyingGlass size={28} /><strong>没有找到相关文档</strong><span>请尝试其他关键词</span></div>}
   </>
 }
@@ -1303,7 +1304,7 @@ const knowledgeFolderChildren = {
   '归档项目': ['2025年度项目总结.docx', '项目交付清单.xlsx'],
 }
 
-function KnowledgeLibraryDetail({ name, onBack, onAskAI, showAskAI = true, onSelectionChange }) {
+function KnowledgeLibraryDetail({ name, onBack, onAskAI, showAskAI = true, onSelectionChange, onOpenDocument }) {
   const current = knowledgeSeed.find(([title]) => title === name) || knowledgeSeed[0]
   const [title, description, Icon, tone, count] = current
   const [folderPath, setFolderPath] = useState([])
@@ -1318,6 +1319,10 @@ function KnowledgeLibraryDetail({ name, onBack, onAskAI, showAskAI = true, onSel
     return next
   })
   const openDocument = documentName => {
+    if (onOpenDocument) {
+      onOpenDocument(documentName)
+      return
+    }
     const url = new URL(window.location.href)
     url.search = ''
     url.hash = ''
@@ -1397,19 +1402,27 @@ function KnowledgeLibraryDetail({ name, onBack, onAskAI, showAskAI = true, onSel
   </div>
 }
 
-function KnowledgeCenterPage({ onAskAI }) {
+export function KnowledgeCenterPage({ onAskAI, productTitle = '知识中心', onOpenDocument, enablePlaza = false, enableCreate = false }) {
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState('')
   const [scope, setScope] = useState('all')
   const [view, setView] = useState('libraries')
   const [librarySection, setLibrarySection] = useState('personal')
+  const [customLibraries, setCustomLibraries] = useState([])
+  const [createMenu, setCreateMenu] = useState(false)
+  const [libraryDialogOpen, setLibraryDialogOpen] = useState(false)
+  const [libraryName, setLibraryName] = useState('')
+  const [settingsFor, setSettingsFor] = useState('')
+  const [visibility, setVisibility] = useState('仅自己可见')
+  const [notice, setNotice] = useState('')
+  const libraryCatalog = enableCreate ? [...customLibraries, ...knowledgeSeed] : knowledgeSeed
   const [subnavCollapsed, setSubnavCollapsed] = useState(false)
   const [subnavWidth, setSubnavWidth] = useState(228)
   const [aiKnowledge, setAiKnowledge] = useState('全部知识')
   const [aiMessage, setAiMessage] = useState('')
   const [detailAiOpen, setDetailAiOpen] = useState(false)
   const [detailAiWidth, setDetailAiWidth] = useState(470)
-  const visible = knowledgeSeed.filter(([title, description, , , , ownership]) => (scope === 'all' || ownership === scope) && `${title}${description}`.includes(query.trim()))
+  const visible = libraryCatalog.filter(([title, description, , , , ownership]) => (librarySection === 'plaza' || scope === 'all' || ownership === scope) && `${title}${description}`.includes(query.trim()))
   useEffect(() => {
     if (librarySection === 'shared') setScope('all')
   }, [librarySection])
@@ -1457,12 +1470,12 @@ function KnowledgeCenterPage({ onAskAI }) {
   }
   return <section className={`knowledge-shell${subnavCollapsed ? ' subnav-collapsed' : ''}${view === 'detail' ? ' detail-view' : ''}${view === 'detail' && detailAiOpen ? ' detail-drawer-open' : ''}`} style={{ gridTemplateColumns: view === 'detail' ? (detailAiOpen ? `minmax(0,1fr) ${detailAiWidth}px` : 'minmax(0,1fr)') : `${subnavCollapsed ? 58 : subnavWidth}px minmax(0,1fr)` }}>
     {view !== 'detail' && <aside className="knowledge-subnav">
-      <div className="knowledge-subnav-title"><Books size={21} weight="fill" /><strong>知识中心</strong><button type="button" className="knowledge-subnav-toggle" aria-label={subnavCollapsed ? '展开知识中心侧栏' : '收起知识中心侧栏'} title={subnavCollapsed ? '展开' : '收起'} onClick={() => setSubnavCollapsed(value => !value)}><SidebarSimple size={19} /></button></div>
+      <div className="knowledge-subnav-title"><Books size={21} weight="fill" /><strong>{productTitle}</strong><button type="button" className="knowledge-subnav-toggle" aria-label={subnavCollapsed ? `展开${productTitle}侧栏` : `收起${productTitle}侧栏`} title={subnavCollapsed ? '展开' : '收起'} onClick={() => setSubnavCollapsed(value => !value)}><SidebarSimple size={19} /></button></div>
       <label className="knowledge-subnav-search"><MagnifyingGlass size={17} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索" /></label>
       <nav>
         <button className={view === 'ask' ? 'active' : ''} onClick={() => openAI(selected || '全部知识')}><ChatCircleDots size={19} />问AI</button>
         <button className={view === 'home' ? 'active' : ''} onClick={() => { setView('home'); setQuery('') }}><House size={19} />主页</button>
-        <button><Compass size={19} />知识广场</button>
+        <button className={view === 'libraries' && librarySection === 'plaza' ? 'active' : ''} type="button" onClick={enablePlaza ? () => { setView('libraries'); setLibrarySection('plaza'); setScope('all'); setSelected(''); setQuery('') } : undefined}><Compass size={19} />知识广场</button>
         <button className={view === 'libraries' && librarySection === 'shared' ? 'active' : ''} onClick={() => { setView('libraries'); setLibrarySection('shared'); setScope('all'); setSelected(''); setQuery('') }}><UsersThree size={19} />共享知识库</button>
         <button className={(view === 'libraries' || view === 'detail') && librarySection === 'personal' ? 'active' : ''} onClick={() => { setView('libraries'); setLibrarySection('personal'); setScope('all'); setSelected(''); setQuery('') }}><BookBookmark size={19} weight="fill" />个人知识库</button>
       </nav>
@@ -1471,20 +1484,29 @@ function KnowledgeCenterPage({ onAskAI }) {
       {!subnavCollapsed && <div className="knowledge-subnav-resize-handle" role="separator" aria-label="调整知识中心侧栏宽度" aria-orientation="vertical" aria-valuemin="190" aria-valuemax="360" aria-valuenow={subnavWidth} onPointerDown={startSubnavResize} />}
     </aside>}
     <div className={`knowledge-page${detailAiOpen && view === 'detail' ? ' detail-ai-open' : ''}`}>
-      {view === 'detail' ? <KnowledgeLibraryDetail name={selected} onBack={() => { setDetailAiOpen(false); setView('libraries') }} onAskAI={() => setDetailAiOpen(true)} showAskAI={!detailAiOpen} /> : view === 'ask' ? <KnowledgeAIWorkspace knowledge={aiKnowledge} message={aiMessage} setMessage={setAiMessage} /> : view === 'home' ? <KnowledgeHomeContent query={query} setQuery={setQuery} /> : <>
-      <header className="knowledge-header"><div><h1>{librarySection === 'shared' ? '共享知识库' : '个人知识库'}</h1><p>{librarySection === 'shared' ? '统一管理我共享的及与我共享的团队知识库' : '管理个人知识，让经验持续产生价值'}</p></div></header>
+      {view === 'detail' ? <KnowledgeLibraryDetail name={selected} onBack={() => { setDetailAiOpen(false); setView('libraries') }} onAskAI={() => setDetailAiOpen(true)} showAskAI={!detailAiOpen} onOpenDocument={onOpenDocument} /> : view === 'ask' ? <KnowledgeAIWorkspace knowledge={aiKnowledge} message={aiMessage} setMessage={setAiMessage} /> : view === 'home' ? <KnowledgeHomeContent query={query} setQuery={setQuery} onOpenDocument={onOpenDocument} /> : <>
+      <header className="knowledge-header"><div><h1>{librarySection === 'shared' ? '共享知识库' : librarySection === 'plaza' ? '知识广场' : '个人知识库'}</h1><p>{librarySection === 'shared' ? '统一管理我共享的及与我共享的团队知识库' : librarySection === 'plaza' ? '发现组织内可访问的知识库，打开后查看目录与文档' : '管理个人知识，让经验持续产生价值'}</p></div></header>
       <div className="knowledge-actions">
-        <button><span><Plus size={22} weight="bold" /></span><div><strong>新建内容</strong><small>新建文档或上传文件</small></div><CaretDown size={17} /></button>
-        <button><span><BookBookmark size={22} weight="fill" /></span><div><strong>新建知识库</strong><small>创建并配置知识空间</small></div><CaretRight size={17} /></button>
+        <div className="knowledge-action-menu">
+          <button type="button" aria-expanded={createMenu} onClick={() => enableCreate && setCreateMenu(value => !value)}><span><Plus size={22} weight="bold" /></span><div><strong>新建内容</strong><small>新建文档或上传文件</small></div><CaretDown size={17} /></button>
+          {enableCreate && createMenu && <div className="knowledge-action-popover" role="menu">
+            <button type="button" onClick={() => { setCreateMenu(false); onOpenDocument?.('未命名文档') }}>新建文档</button>
+            <label>上传文件<input className="knowledge-file-input" type="file" onChange={() => { setCreateMenu(false); setNotice('已记录上传选择。这是原型，文件不会保存到服务器。') }} /></label>
+          </div>}
+        </div>
+        <button type="button" onClick={() => enableCreate && setLibraryDialogOpen(true)}><span><BookBookmark size={22} weight="fill" /></span><div><strong>新建知识库</strong><small>创建并配置知识空间</small></div><CaretRight size={17} /></button>
       </div>
       <div className="knowledge-section-heading">{librarySection === 'shared' ? <div className="knowledge-heading-main"><div className="knowledge-scope-tabs" role="tablist" aria-label="共享知识库范围">{[['all', '全部'], ['created', '我共享的'], ['joined', '与我共享']].map(([value, label]) => <button className={scope === value ? 'active' : ''} type="button" role="tab" aria-selected={scope === value} key={value} onClick={() => { setScope(value); setSelected('') }}>{label}</button>)}</div></div> : <div />}<label className="knowledge-inline-search"><MagnifyingGlass size={17} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索知识库" /></label></div>
       <div className="knowledge-grid">{visible.map(([title, description, , tone]) => <button key={title} className={`knowledge-card ${tone} ${selected === title ? 'active' : ''}`} onClick={() => { setSelected(title); setView('detail') }}>
-        <PushPin className="knowledge-card-pin" size={15} weight="bold" /><strong>{title}</strong><p>{description}</p><span className="knowledge-card-settings"><Gear size={17} weight="bold" />知识库设置</span>
+        <PushPin className="knowledge-card-pin" size={15} weight="bold" /><strong>{title}</strong><p>{description}</p><span className="knowledge-card-settings" role="button" tabIndex={0} onClick={event => { event.stopPropagation(); if (!enableCreate) return; setSettingsFor(title); setVisibility(librarySection === 'personal' ? '仅自己可见' : '团队可见') }} onKeyDown={event => { if (event.key === 'Enter') { event.stopPropagation(); event.preventDefault(); if (enableCreate) setSettingsFor(title) } }}><Gear size={17} weight="bold" />知识库设置</span>
       </button>)}</div>
       {!visible.length && <div className="knowledge-empty"><MagnifyingGlass size={28} /><strong>没有找到相关知识库</strong><span>请尝试其他关键词</span></div>}
       </>}
     </div>
     {view === 'detail' && detailAiOpen && <KnowledgeDetailAIDrawer knowledge={selected || '当前知识库'} width={detailAiWidth} onResize={startDetailAiResize} onClose={() => setDetailAiOpen(false)} />}
+    {enableCreate && libraryDialogOpen && <div className="knowledge-product-dialog-backdrop" onMouseDown={() => setLibraryDialogOpen(false)}><form className="knowledge-product-dialog" onMouseDown={event => event.stopPropagation()} onSubmit={event => { event.preventDefault(); const name = libraryName.trim(); if (!name) return; setCustomLibraries(current => [[name, '刚刚创建的知识空间', FolderOpen, 'ocean', 0, 'created'], ...current]); setLibraryName(''); setLibraryDialogOpen(false); setLibrarySection('personal'); setSelected(name); setView('detail'); setNotice(`已创建知识库「${name}」。内容只保存在这次浏览中。`) }}><h2>新建知识库</h2><label>名称<input value={libraryName} onChange={event => setLibraryName(event.target.value)} placeholder="例如：项目复盘" autoFocus /></label><div><button type="button" onClick={() => setLibraryDialogOpen(false)}>取消</button><button type="submit">创建</button></div></form></div>}
+    {enableCreate && settingsFor && <div className="knowledge-product-dialog-backdrop" onMouseDown={() => setSettingsFor('')}><section className="knowledge-product-dialog" onMouseDown={event => event.stopPropagation()}><h2>知识库设置</h2><p>{settingsFor}</p><label><input type="radio" name="visibility" checked={visibility === '仅自己可见'} onChange={() => setVisibility('仅自己可见')} />仅自己可见</label><label><input type="radio" name="visibility" checked={visibility === '团队可见'} onChange={() => setVisibility('团队可见')} />团队可见</label><div><button type="button" onClick={() => setSettingsFor('')}>关闭</button><button type="button" onClick={() => { setNotice(`已将「${settingsFor}」设为${visibility}。这是原型中的本地设置。`); setSettingsFor('') }}>保存</button></div></section></div>}
+    {notice && <div className="knowledge-product-toast" role="status">{notice}<button type="button" onClick={() => setNotice('')}>知道了</button></div>}
   </section>
 }
 
@@ -1526,7 +1548,7 @@ function KnowledgeAIWorkspace({ knowledge, message, setMessage }) {
   return <section className="knowledge-ai-workspace knowledge-embedded-welcome">
     <div className="greeting"><h1>HI～我是你的工作伙伴</h1></div>
     <div className="chips">{chips.slice(0, 6).map(([Icon, label]) => <button key={label} onClick={() => setSelectedSkills(current => current.includes(label) ? current : [...current, label])}><Icon size={18} weight="fill" />{label}</button>)}<button className="more-skills" aria-label="查看更多技能"><CaretRight size={19} weight="bold" /></button></div>
-    <div className="composer-mascot" aria-hidden="true"><img src="/workbuddy-cat-mascot.png" alt="" /></div>
+    <div className="composer-mascot" aria-hidden="true"><img src={publicAsset("/workbuddy-cat-mascot.png")} alt="" /></div>
     <div className={`composer${sent ? ' sent' : ''}`}>
       {!!selectedSkills.length && <div className="composer-skill-chips">{selectedSkills.map(name => <span className="composer-skill-chip" key={name}><Sparkle size={13} weight="fill" /><span>{name}</span><button type="button" aria-label={`移除技能${name}`} onClick={() => setSelectedSkills(current => current.filter(item => item !== name))}><X size={11} weight="bold" /></button></span>)}</div>}
       <textarea autoFocus className={selectedSkills.length ? 'has-skill-chips' : ''} value={message} onChange={event => { setMessage(event.target.value); setSent(false) }} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); submit() } }} placeholder="发消息或输入“/”调用技能或专家，“@”指定知识" />
