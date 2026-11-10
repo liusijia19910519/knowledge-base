@@ -1,3 +1,4 @@
+import { upgradeBusiness, libraryRights, fileRights } from './businessData.js';
 const KEY = "kb-prototype-v1";
 
 export const ROLE_OPTIONS = [
@@ -61,7 +62,7 @@ export function seedState() {
       { id: "doc-faq", spaceId: "space-handbook", parentId: "", type: "doc", name: "报销需要哪些材料", body: "差旅报销需要发票、行程单和部门负责人确认。市内交通只保留电子发票。", ownerId: "zhou-ning", favorite: true, updatedAt: daysAgo(1), deletedAt: "", inherit: true, members: [], faq: true },
       { id: "folder-guide", spaceId: "space-handbook", parentId: "", type: "folder", name: "功能说明", body: "", ownerId: "zhou-ning", favorite: false, updatedAt: daysAgo(3), deletedAt: "", inherit: true, members: [] },
       { id: "doc-guide", spaceId: "space-handbook", parentId: "folder-guide", type: "doc", name: "知识库怎么授权", body: "团队管理员默认可以管理本库。团队成员的角色可以设成与团队一致，也可以单独改成仅查看。文档还可以再单独指定成员。", ownerId: "chen-ke", favorite: false, updatedAt: daysAgo(2), deletedAt: "", inherit: true, members: [] },
-      { id: "doc-note", spaceId: "space-personal", parentId: "", type: "doc", name: "本周要整理的口径", body: "把对外报价口径从个人备忘挪到产品手册库，并标上团队可见。", ownerId: "zhou-ning", favorite: false, updatedAt: daysAgo(0), deletedAt: "", inherit: true, members: [] },
+      { id: "doc-note", spaceId: "space-personal", parentId: "", type: "doc", name: "本周要整理的口径", body: "把对外报价口径从个人备忘挪到产品手册库，并标上团队可见。", ownerId: "zhou-ning", favorite: false, updatedAt: daysAgo(0), deletedAt: "", inherit: true, members: [], plazaStatus: "draft" },
       { id: "doc-retro", spaceId: "space-retro", parentId: "", type: "doc", name: "华东项目移交清单", body: "移交时要包含账号、接口凭证负责人和未关闭问题。查看者只能阅读，不能下载附件。", ownerId: "zhao-heng", favorite: false, updatedAt: daysAgo(4), deletedAt: "", inherit: false, members: [{ type: "staff", id: "lin-xia", role: "viewer" }] },
     ],
     recents: ["doc-faq", "doc-note"],
@@ -71,21 +72,22 @@ export function seedState() {
 export function loadState() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return seedState();
+    if (!raw) return upgradeBusiness(seedState());
     const parsed = JSON.parse(raw);
-    if (!parsed?.org || !parsed?.nodes) return seedState();
-    return parsed;
+    if (!parsed?.org || !parsed?.nodes) return upgradeBusiness(seedState());
+    return upgradeBusiness(parsed);
   } catch {
-    return seedState();
+    return upgradeBusiness(seedState());
   }
 }
 
 export function saveState(state) {
-  localStorage.setItem(KEY, JSON.stringify(state));
+  try { localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch { throw new Error('浏览器存储空间不足，未保存本次修改。请清理不需要的内容后重试。'); }
 }
 
 export function resetState() {
-  const next = seedState();
+  const next = upgradeBusiness(seedState());
   saveState(next);
   return next;
 }
@@ -99,7 +101,9 @@ export function teamRole(state, team, userId) {
 }
 
 export function spaceRole(state, space, userId) {
+  if(state.businessVersion===1){const rights=libraryRights(state,space,userId);return !rights.view?'none':rights.manage?'manager':rights.edit?'editor':'viewer';}
   if (!space) return "none";
+  if (space.visibility === 'public') return space.ownerId === userId ? 'manager' : 'viewer';
   if (space.personal) return space.ownerId === userId ? "manager" : "none";
   const direct = space.members.find((item) => item.type === "staff" && item.id === userId);
   if (direct) return direct.role;
@@ -111,7 +115,9 @@ export function spaceRole(state, space, userId) {
 }
 
 export function nodeRole(state, node, userId) {
+  if(state.businessVersion===1){const rights=fileRights(state,node,userId);return !rights.view?'none':rights.manage?'manager':rights.edit?'editor':'viewer';}
   if (!node || node.deletedAt) return "none";
+  if (node.plazaStatus === 'published' && node.sourceId) return node.ownerId === userId ? 'manager' : 'viewer';
   const space = state.spaces.find((item) => item.id === node.spaceId);
   const direct = node.members.find((item) => item.type === "staff" && item.id === userId);
   if (direct) return direct.role;

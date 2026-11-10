@@ -84,6 +84,36 @@ body { min-width: 0; overflow: hidden; }
 .kb-readonly { margin-left: 8px; color: #b07a12; font-size: 12px; }
 
 .knowledge-folder-menu button.danger { color: #d14343; }
+.knowledge-home-actions { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.home-action-button { width:100%; height:72px; padding:0 16px; border:1px solid #dfe1e4; border-radius:11px; background:#fff; display:flex; align-items:center; gap:12px; text-align:left; color:#4e7fe4; cursor:pointer; }
+.home-action-button > span { flex:1; display:flex; flex-direction:column; gap:4px; color:#333; }.home-action-button strong { font-size:14px; }.home-action-button small { color:#96989d; font-size:11px; }.home-action-button input { display:none; }.home-action-button:hover { border-color:#adc9f5; }.knowledge-home-toolbar > span { color:#96999f; font-size:12px; }
+
+.home-workbench { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 14px; margin: 22px 0 26px; }
+.home-workbench > article { min-width: 0; min-height: 156px; padding: 15px; border: 1px solid #e5e8ed; border-radius: 13px; background: #fff; box-shadow: 0 5px 16px rgba(37, 53, 76, .035); }
+.home-workbench header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.home-workbench header > div { display: inline-flex; align-items: center; gap: 7px; color: #3e444d; font-size: 14px; }
+.home-workbench header > div svg { color: #4d7fea; }
+.home-workbench header > span { min-width: 20px; height: 20px; border-radius: 10px; background: #edf3ff; color: #3b74dc; display: grid; place-items: center; font-size: 11px; font-weight: 650; }
+.home-workbench header > button { padding: 3px 2px; border: 0; background: transparent; color: #7b8088; display: inline-flex; align-items: center; gap: 2px; font-size: 11px; }
+.home-workbench header > button:hover { color: #3373df; }
+.home-pending-list, .home-quick-list, .home-dynamic-list { margin-top: 12px; }
+.home-pending-list > div { min-height: 46px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.home-pending-list > div + div { border-top: 1px solid #f0f2f4; }
+.home-pending-list > div > div { min-width: 0; display: flex; align-items: center; gap: 8px; color: #5c80d7; }
+.home-pending-list strong, .home-pending-list small, .home-quick-list strong, .home-quick-list small, .home-dynamic-list strong, .home-dynamic-list small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.home-pending-list strong, .home-quick-list strong, .home-dynamic-list strong { color: #474c55; font-size: 12px; font-weight: 600; }
+.home-pending-list small, .home-quick-list small, .home-dynamic-list small { margin-top: 3px; color: #989da5; font-size: 11px; }
+.home-pending-list > div > button { height: 25px; padding: 0 7px; border: 1px solid #dce5f5; border-radius: 6px; background: #f7faff; color: #3774db; font-size: 11px; }
+.home-pending-list > p { margin: 24px 0 0; color: #9ca1a9; font-size: 12px; }
+.home-quick-list > button, .home-dynamic-list > button { width: 100%; min-height: 43px; padding: 5px 0; border: 0; border-top: 1px solid #f0f2f4; background: transparent; display: flex; align-items: center; gap: 8px; text-align: left; }
+.home-quick-list > button:first-child, .home-dynamic-list > button:first-child { border-top: 0; }
+.home-quick-list > button:hover, .home-dynamic-list > button:hover { background: #f8faff; }
+.home-quick-list > button > span:nth-child(2), .home-dynamic-list > button > span { min-width: 0; flex: 1; }
+.home-quick-list > button > svg:last-child { color: #a2a7af; }
+.home-space-mark { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; color: #4d80ed; background: #edf3ff; }
+.home-space-mark.tone-1 { color: #3f947e; background: #edf8f5; }.home-space-mark.tone-2 { color: #bc7c37; background: #fff6e9; }
+.home-dynamic-list > button > svg { flex: 0 0 auto; color: #5686ed; }
+
 
 @media (max-width: 1100px) {
   .knowledge-doc-shell { height: 100vh; overflow: auto; }
@@ -108,6 +138,7 @@ body { min-width: 0; overflow: hidden; }
   .knowledge-product .kb-identity { display: none; }
   .knowledge-product .knowledge-subnav nav button { width: 42px; padding: 0; justify-content: center; gap: 0; font-size: 0; }
   .knowledge-home-actions, .knowledge-actions { grid-template-columns: 1fr; }
+  .home-workbench { grid-template-columns: 1fr; }
   .knowledge-document-table, .knowledge-detail-table { overflow-x: auto; }
   .knowledge-document-row, .knowledge-detail-row { min-width: 640px; }
   .knowledge-product-dialog .kb-perm-row { grid-template-columns: 1fr; }

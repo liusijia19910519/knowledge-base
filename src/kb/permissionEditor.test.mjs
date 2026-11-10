@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { ALL, NONE } from './businessData.js';
+import { permissionLabel, permissionPolicy, permissionPresets } from './permissionEditor.js';
+const fixture=()=>({spaces:[{id:'s',kind:'shared',ownerId:'owner',acl:{author:{...NONE,view:true},manager:{...NONE,manage:true}}}],nodes:[{id:'n',spaceId:'s',ownerId:'author',inherit:false,acl:{reader:{...NONE,view:true}}}]});
+test('快捷授权不隐式添加分享管理，自定义支持仅管理',()=>{const s=fixture();const p=permissionPolicy(s,s.spaces[0],'space','reader');assert.deepEqual(p.apply(permissionPresets[1].rights),{...NONE,view:true,edit:true});assert.deepEqual(p.apply({...NONE,manage:true}),{...NONE,manage:true});assert.equal(permissionLabel({...NONE,manage:true}),'自定义权限');assert.equal(permissionLabel(NONE),'未授予权限');});
+test('创建者保护与文件作者的库访问撤销保持一致',()=>{const s=fixture();assert.equal(permissionPolicy(s,s.nodes[0],'node','owner').owner,true);assert.equal(permissionPolicy(s,s.nodes[0],'node','author').owner,true);s.spaces[0].acl.author={...NONE};s.nodes[0].acl.author={...ALL};assert.equal(permissionPolicy(s,s.nodes[0],'node','author').owner,false);});
+test('文件管理者权限来自库，快捷授权不能撤销管理或移除',()=>{const s=fixture(),p=permissionPolicy(s,s.nodes[0],'node','manager');assert.equal(p.removeDisabled,true);assert.deepEqual(p.apply(permissionPresets[0].rights),{...NONE,view:true,manage:true});});
+test('继承展示有效授权，转独立后才能自定义',()=>{const s=fixture();s.nodes[0].inherit=true;const p=permissionPolicy(s,s.nodes[0],'node','author',true);assert.equal(p.inherited,true);assert.deepEqual(p.apply(NONE),ALL);});
+test('广场全员查看不可撤销，待发布目录的子文件仍可限制查看',()=>{const s=fixture();s.spaces[0].kind='plaza';s.spaces[0].status='published';assert.equal(permissionPolicy(s,s.nodes[0],'node','reader').apply(NONE).view,true);s.nodes.push({id:'folder',spaceId:'s',ownerId:'owner',publicationPending:true});s.nodes[0].parentId='folder';const p=permissionPolicy(s,s.nodes[0],'node','reader');assert.equal(p.publicView,false);assert.equal(p.apply(NONE).view,false);});
+test('批准访问申请锁定申请人的查看权限',()=>{const s=fixture(),p=permissionPolicy(s,s.nodes[0],'node','reader',false,'reader');assert.equal(p.removeDisabled,true);assert.equal(p.apply(NONE).view,true);});
