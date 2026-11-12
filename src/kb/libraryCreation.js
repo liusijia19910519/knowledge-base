@@ -1,0 +1,11 @@
+import { initialAccess } from './permissions.js';
+import { validateAccess } from './access.js';
+export function createLibrary(state,{name,description='',access,initializer='personal',icon,cover},userId){
+  const title=name.trim();if(!title||title.length>40)throw Error('请输入 1–40 个字符的知识库名称');
+  if(description.length>300)throw Error('简介不能超过 300 个字符');
+  if(state.spaces.some(s=>!s.deletedAt&&s.ownerId===userId&&s.name.trim().toLocaleLowerCase()===title.toLocaleLowerCase()))throw Error('你已有同名知识库，请换一个名称');
+  const checked=validateAccess(state,access||initialAccess(state,initializer),[userId]);
+  if(initializer==='shared'&&!checked.subjects?.length)throw Error('请至少添加一个公司、部门或人员并配置权限');
+  const time=new Date().toISOString(),library={id:crypto.randomUUID(),name:title,description:description.trim(),ownerId:userId,access:checked,...(icon?{icon}:{}),...(cover?{cover}:{}),members:[],createdAt:time,updatedAt:time};
+  return {library,state:{...state,spaces:[...state.spaces,library]}};
+}

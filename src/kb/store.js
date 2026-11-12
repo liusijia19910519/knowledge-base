@@ -1,4 +1,4 @@
-import { upgradeBusiness, libraryRights, fileRights } from './businessData.js';
+import { migrateAccess, libraryRights, contentRights, librariesForView, CAPABILITIES } from './access.js';
 const KEY = "kb-prototype-v1";
 
 export const ROLE_OPTIONS = [
@@ -12,6 +12,7 @@ export const ROLE_OPTIONS = [
 const rank = { none: -1, viewer: 0, downloader: 1, editor: 2, manager: 3 };
 
 export function roleLabel(role) {
+  if (role && typeof role === "object") return CAPABILITIES.filter(([k]) => role[k]).map(([,label]) => label).join("、") || "无权限";
   return ROLE_OPTIONS.find(([value]) => value === role)?.[1] || "无权限";
 }
 
@@ -62,32 +63,54 @@ export function seedState() {
       { id: "doc-faq", spaceId: "space-handbook", parentId: "", type: "doc", name: "报销需要哪些材料", body: "差旅报销需要发票、行程单和部门负责人确认。市内交通只保留电子发票。", ownerId: "zhou-ning", favorite: true, updatedAt: daysAgo(1), deletedAt: "", inherit: true, members: [], faq: true },
       { id: "folder-guide", spaceId: "space-handbook", parentId: "", type: "folder", name: "功能说明", body: "", ownerId: "zhou-ning", favorite: false, updatedAt: daysAgo(3), deletedAt: "", inherit: true, members: [] },
       { id: "doc-guide", spaceId: "space-handbook", parentId: "folder-guide", type: "doc", name: "知识库怎么授权", body: "团队管理员默认可以管理本库。团队成员的角色可以设成与团队一致，也可以单独改成仅查看。文档还可以再单独指定成员。", ownerId: "chen-ke", favorite: false, updatedAt: daysAgo(2), deletedAt: "", inherit: true, members: [] },
-      { id: "doc-note", spaceId: "space-personal", parentId: "", type: "doc", name: "本周要整理的口径", body: "把对外报价口径从个人备忘挪到产品手册库，并标上团队可见。", ownerId: "zhou-ning", favorite: false, updatedAt: daysAgo(0), deletedAt: "", inherit: true, members: [], plazaStatus: "draft" },
+      { id: "doc-note", spaceId: "space-personal", parentId: "", type: "doc", name: "本周要整理的口径", body: "把对外报价口径从个人备忘挪到产品手册库，并标上团队可见。", ownerId: "zhou-ning", favorite: false, updatedAt: daysAgo(0), deletedAt: "", inherit: true, members: [] },
       { id: "doc-retro", spaceId: "space-retro", parentId: "", type: "doc", name: "华东项目移交清单", body: "移交时要包含账号、接口凭证负责人和未关闭问题。查看者只能阅读，不能下载附件。", ownerId: "zhao-heng", favorite: false, updatedAt: daysAgo(4), deletedAt: "", inherit: false, members: [{ type: "staff", id: "lin-xia", role: "viewer" }] },
     ],
     recents: ["doc-faq", "doc-note"],
   };
 }
 
+// Restored builds can encounter newer cached records without legacy member arrays.
+// Complete their collection fields without discarding content, ACLs or metadata.
+export function normalizeState(state) {
+  const defaults = seedState();
+  const list = (value, fallback = []) => Array.isArray(value) ? value : fallback;
+  const normalized=migrateAccess({
+    ...defaults,
+    ...state,
+    teamDefaults: { ...defaults.teamDefaults, ...state.teamDefaults },
+    members: list(state.members, defaults.members).filter(Boolean).map(member => ({ ...member, tags: list(member.tags) })),
+    teams: list(state.teams).filter(Boolean).map(team => ({ ...team, members: team.members && typeof team.members === "object" && !Array.isArray(team.members) ? team.members : {} })),
+    departments: list(state.departments),
+    tags: list(state.tags),
+    spaces: list(state.spaces).filter(Boolean).map(space => ({ ...space, members: list(space.members) })),
+    nodes: list(state.nodes).filter(Boolean).map(node => ({ ...node, members: list(node.members) })),
+    recents: list(state.recents),
+  });
+  if(!Object.prototype.hasOwnProperty.call(normalized.pinsByUser||{},normalized.meId)){
+    normalized.pinsByUser={...normalized.pinsByUser,[normalized.meId]:librariesForView(normalized,normalized.meId).slice(0,4).map(s=>({spaceId:s.id,view:['personal','shared','plaza'].find(view=>librariesForView(normalized,normalized.meId,view).some(x=>x.id===s.id))}))};
+  }
+  return normalized;
+}
+
 export function loadState() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return upgradeBusiness(seedState());
+    if (!raw) return normalizeState(seedState());
     const parsed = JSON.parse(raw);
-    if (!parsed?.org || !parsed?.nodes) return upgradeBusiness(seedState());
-    return upgradeBusiness(parsed);
+    if (!parsed?.org || !Array.isArray(parsed.nodes)) return normalizeState(seedState());
+    return normalizeState(parsed);
   } catch {
-    return upgradeBusiness(seedState());
+    return normalizeState(seedState());
   }
 }
 
 export function saveState(state) {
-  try { localStorage.setItem(KEY, JSON.stringify(state)); }
-  catch { throw new Error('浏览器存储空间不足，未保存本次修改。请清理不需要的内容后重试。'); }
+  localStorage.setItem(KEY, JSON.stringify(state));
 }
 
 export function resetState() {
-  const next = upgradeBusiness(seedState());
+  const next = seedState();
   saveState(next);
   return next;
 }
@@ -100,32 +123,11 @@ export function teamRole(state, team, userId) {
   return team?.members?.[userId] || "none";
 }
 
-export function spaceRole(state, space, userId) {
-  if(state.businessVersion===1){const rights=libraryRights(state,space,userId);return !rights.view?'none':rights.manage?'manager':rights.edit?'editor':'viewer';}
-  if (!space) return "none";
-  if (space.visibility === 'public') return space.ownerId === userId ? 'manager' : 'viewer';
-  if (space.personal) return space.ownerId === userId ? "manager" : "none";
-  const direct = space.members.find((item) => item.type === "staff" && item.id === userId);
-  if (direct) return direct.role;
-  const team = state.teams.find((item) => item.id === space.teamId);
-  const inherited = teamRole(state, team, userId);
-  if (inherited === "manager") return space.managerInherit || "manager";
-  if (inherited !== "none") return space.memberInherit === "default" ? inherited : (space.memberInherit || "none");
-  return "none";
-}
-
-export function nodeRole(state, node, userId) {
-  if(state.businessVersion===1){const rights=fileRights(state,node,userId);return !rights.view?'none':rights.manage?'manager':rights.edit?'editor':'viewer';}
-  if (!node || node.deletedAt) return "none";
-  if (node.plazaStatus === 'published' && node.sourceId) return node.ownerId === userId ? 'manager' : 'viewer';
-  const space = state.spaces.find((item) => item.id === node.spaceId);
-  const direct = node.members.find((item) => item.type === "staff" && item.id === userId);
-  if (direct) return direct.role;
-  if (node.inherit !== false) return spaceRole(state, space, userId);
-  return "none";
-}
+export function spaceRole(state, space, userId) { return libraryRights(state, space, userId); }
+export function nodeRole(state, node, userId) { return contentRights(state, node, userId); }
 
 export function can(role, action) {
+  if (role && typeof role === "object") return !!(action === "download" ? role.download ?? role.view : role[action]);
   const value = rank[role] ?? -1;
   if (action === "view") return value >= 0;
   if (action === "download") return value >= 1;
@@ -135,7 +137,7 @@ export function can(role, action) {
 }
 
 export function visibleSpaces(state, userId) {
-  return state.spaces.filter((space) => can(spaceRole(state, space, userId), "view"));
+  return librariesForView(state, userId);
 }
 
 export function visibleNodes(state, userId) {
