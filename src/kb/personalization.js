@@ -1,11 +1,11 @@
-import { librariesForView, contentRights, effectiveAccess } from './access.js';
+import { librariesForView, contentRights, effectiveAccess, libraryType } from './access.js';
 import { favorites } from './fileActions.js';
 
 const owns=(object,key)=>Object.prototype.hasOwnProperty.call(object||{},key);
 export function pinnedRecords(state,userId){
   const saved=state.pinsByUser?.[userId];
   if(owns(state.pinsByUser,userId))return Array.isArray(saved)?saved:[];
-  return userId===state.meId?librariesForView(state,userId).slice(0,4).map(s=>({spaceId:s.id,view:s.ownerId===userId?'personal':effectiveLibraryView(state,s.id,userId)})):[];
+  return userId===state.meId?librariesForView(state,userId).slice(0,4).map(s=>({spaceId:s.id,view:libraryType(s)})):[];
 }
 function effectiveLibraryView(state,id,userId,preferred){return [preferred,'personal','shared','plaza'].filter(Boolean).find(view=>librariesForView(state,userId,view).some(s=>s.id===id))||'';}
 export function visiblePins(state,userId){const seen=new Set();return pinnedRecords(state,userId).map(record=>({library:state.spaces.find(s=>s.id===record.spaceId),view:effectiveLibraryView(state,record.spaceId,userId,record.view)})).filter(p=>{if(!p.library||p.library.deletedAt||!p.view||seen.has(p.library.id))return false;seen.add(p.library.id);return true;});}
@@ -18,14 +18,7 @@ export function pinnedLibrariesForView(state,userId,view){
 }
 function savePins(state,userId,records){
   const existing=state.pinsByUser||{[state.meId]:pinnedRecords(state,state.meId)};
-  const next={...state,pinsByUser:{...existing,[userId]:records}};
-  // Capture the current card orders before a sidebar change, so later sorting is independent.
-  const views={...state.viewPinOrderByUser?.[userId]};
-  for(const view of PIN_SPACES){
-    const previous=pinnedLibrariesForView(state,userId,view).map(l=>l.id),available=pinnedLibrariesForView({...next,viewPinOrderByUser:{}},userId,view).map(l=>l.id);
-    views[view]=[...previous.filter(id=>available.includes(id)),...available.filter(id=>!previous.includes(id))];
-  }
-  return {...next,viewPinOrderByUser:{...state.viewPinOrderByUser,[userId]:views}};
+  return {...state,pinsByUser:{...existing,[userId]:records}};
 }
 export function togglePin(state,userId,id,view){const current=pinnedRecords(state,userId),present=current.some(p=>p.spaceId===id);if(present)return savePins(state,userId,current.filter(p=>p.spaceId!==id));const origin=effectiveLibraryView(state,id,userId,view);if(!origin)throw Error('当前无法访问该知识库');return savePins(state,userId,[...current,{spaceId:id,view:origin}]);}
 export function reorderPin(state,userId,id,targetId,after=false){
@@ -44,7 +37,7 @@ export function visitContent(state,id,userId){const node=state.nodes.find(n=>n.i
 export function homeEntries(state,userId,tab,query=''){
   const visits=recentVisits(state,userId),favoriteIds=new Set(favorites(state,userId));
   const available=state.nodes.filter(n=>contentRights(state,n,userId).view).filter(n=>!query.trim()||`${n.name} ${n.body||''}`.includes(query.trim()));
-  let result=available.filter(n=>tab==='recent'?visits.some(r=>r.id===n.id):tab==='favorite'?favoriteIds.has(n.id):tab==='mine'?n.ownerId===userId&&effectiveAccess(state,n).visibility!=='private':n.ownerId!==userId&&state.spaces.find(s=>s.id===n.spaceId)?.ownerId!==userId&&effectiveAccess(state,n).visibility==='members');
+  let result=available.filter(n=>tab==='recent'?visits.some(r=>r.id===n.id):tab==='favorite'?favoriteIds.has(n.id):tab==='mine'?n.ownerId===userId&&libraryType(state.spaces.find(s=>s.id===n.spaceId))!=='personal'&&effectiveAccess(state,n).visibility!=='private':n.ownerId!==userId&&state.spaces.find(s=>s.id===n.spaceId)?.ownerId!==userId&&libraryType(state.spaces.find(s=>s.id===n.spaceId))==='shared');
   result=[...new Map(result.map(n=>[n.id,n])).values()];
   return result.sort((a,b)=>tab==='recent'?visits.findIndex(r=>r.id===a.id)-visits.findIndex(r=>r.id===b.id):new Date(b.updatedAt||0)-new Date(a.updatedAt||0));
 }

@@ -1,16 +1,17 @@
-import { accessFingerprint, effectiveAccess, spaceAccess, saveEntityAccess, validateAccess, contentRights, libraryRights, permissionLayers } from './access.js';
+import { accessFingerprint, effectiveAccess, spaceAccess, saveEntityAccess, validateAccess, contentRights, libraryRights, permissionLayers, protectedManagers, libraryLocalAccess, libraryType } from './access.js';
 import { accessFromSubjects, toSubjectAccess, subjectKey } from './permissions.js';
 
 export function permissionTarget(state,id,entity,userId){
   const item=state[entity==='space'?'spaces':'nodes'].find(n=>n.id===id),rights=entity==='space'?libraryRights(state,item,userId):contentRights(state,item,userId);
   if(!item||item.deletedAt||!rights.manage)throw Error('当前没有管理权限');
-  const library=entity==='space'?item:state.spaces.find(s=>s.id===item.spaceId),owners=[...new Set([item.ownerId,library?.ownerId].filter(Boolean))];
-  const access=entity==='space'?spaceAccess(state,item):effectiveAccess(state,item);
+  const library=entity==='space'?item:state.spaces.find(s=>s.id===item.spaceId),owners=protectedManagers(state,item,entity).map(row=>row.id);
+  const access=entity==='space'?libraryLocalAccess(state,item):item.localAccess||accessFromSubjects(state,[]);
   return {item,library,owners,access:toSubjectAccess(state,access,owners),...(entity==='node'?{layers:permissionLayers(state,item)}:{})};
 }
 export function addCollaborators(state,{id,entity='node',subjects,expected,confirmedIndependent=false},userId){
   const target=permissionTarget(state,id,entity,userId);
   if(expected&&accessFingerprint(state,target.item,entity)!==expected)throw Error('当前权限已变化，请关闭后重新打开核对');
+  if(libraryType(target.library)==='personal')throw Error('个人内容不能直接添加协作者，请先移动到共享知识库或知识广场');
   const additions=validateAccess(state,accessFromSubjects(state,subjects),target.owners).subjects;
   if(!additions.length)throw Error('请至少添加一个新的协作者');
   const direct=entity==='node'?target.layers.local:target.access;

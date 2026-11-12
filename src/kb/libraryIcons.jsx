@@ -1,3 +1,4 @@
+import { IMAGE_DATABASE } from './prototypeData.js';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BookOpen, PaperPlaneTilt, FileText, NotePencil, ChatsCircle, Robot, Smiley, HandWaving, IdentificationCard, TrendUp, Code, Presentation, Trophy, ThumbsUp, ChartBar, Bell, PencilSimple, Shuffle, X, Image as ImageIcon } from '@phosphor-icons/react';
@@ -5,7 +6,7 @@ import { useLocationDialog } from './LocationPicker.jsx';
 
 export const LIBRARY_ICONS=[['book',BookOpen,'#deebff'],['plane',PaperPlaneTilt,'#d9f2e4'],['manual',FileText,'#e1eaff'],['notes',NotePencil,'#d6efdf'],['chat',ChatsCircle,'#e1eaff'],['robot',Robot,'#e9dfff'],['smile',Smiley,'#fff0c8'],['wave',HandWaving,'#fff0c8'],['people',IdentificationCard,'#e9dfff'],['trend',TrendUp,'#fff0c8'],['code',Code,'#e9dfff'],['slides',Presentation,'#deebff'],['trophy',Trophy,'#fff0c8'],['thumbs',ThumbsUp,'#fff0c8']];
 let opening;
-function iconDB(){if(!opening)opening=new Promise((resolve,reject)=>{const request=indexedDB.open('knowledge-library-icons',1);request.onupgradeneeded=()=>request.result.createObjectStore('images');request.onsuccess=()=>resolve(request.result);request.onerror=()=>{opening=null;reject(Error('图标存储不可用，请重试'));};});return opening;}
+function iconDB(){if(!opening)opening=new Promise((resolve,reject)=>{const request=indexedDB.open(IMAGE_DATABASE,1);request.onupgradeneeded=()=>request.result.createObjectStore('images');request.onsuccess=()=>resolve(request.result);request.onerror=()=>{opening=null;reject(Error('图标存储不可用，请重试'));};});return opening;}
 async function transaction(mode,action){const db=await iconDB();return new Promise((resolve,reject)=>{const tx=db.transaction('images',mode),request=action(tx.objectStore('images'));let value;request.onsuccess=()=>{value=request.result;};tx.oncomplete=()=>resolve(value);tx.onerror=()=>reject(Error('图标保存失败，请重试'));tx.onabort=()=>reject(Error('图标操作已中断'));});}
 export async function persistLibraryIcon(draft){
   if(draft?.kind!=='image'||!draft.file)return {icon:draft||{kind:'preset',key:'book'},rollback:async()=>{}};

@@ -1,8 +1,9 @@
 import { can, nodeRole, spaceRole } from './store.js';
+import { fileType } from './fileTypes.js';
 import { activeNode, creationAccess, librariesForView, libraryRights, validateAccess } from './access.js';
 
 export const CONTENT_TYPES=[['doc','文档'],['sheet','表格'],['slides','幻灯片'],['folder','文件夹']];
-export const contentLabel=node=>node.format==='file'?'文件':CONTENT_TYPES.find(([id])=>id===(node.type==='folder'?'folder':node.format||'doc'))?.[1]||'文档';
+export const contentLabel=node=>fileType(node).label;
 export const initialContent=format=>format==='sheet'?JSON.stringify({rows:Array.from({length:5},()=>['','','',''])}):format==='slides'?JSON.stringify({slides:[{title:'',body:''}]}):'';
 export function parseContent(format,body) {
   try {const value=JSON.parse(body);if(format==='sheet'&&Array.isArray(value.rows)&&value.rows.length&&value.rows.every(r=>Array.isArray(r)&&r.length))return value;if(format==='slides'&&Array.isArray(value.slides)&&value.slides.length)return value;} catch {}

@@ -2,10 +2,11 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DotsThree, ShareNetwork } from '@phosphor-icons/react';
 import { actionReason, favorites, printable } from './fileActions.js';
+import { libraryType } from './access.js';
 export function fileMenuItems(state,node,userId,context='list',editing=false){
   const labels={open:'打开',edit:'编辑',favorite:favorites(state,userId).includes(node.id)?'取消收藏':'收藏',rename:'重命名',copy:'复制到',move:'移动到',download:'下载',print:'打印',locate:'查看所在位置',info:'文件信息',permissions:'权限管理',delete:'删除'};
   const order=context==='document'?['edit','favorite','rename','copy','move','download','print','locate','info','permissions','delete']:['open','favorite','rename','copy','move','permissions','delete'];
-  return order.filter(action=>action!=='edit'||!editing&&node.type!=='folder'&&node.format!=='file').filter(action=>action!=='print'||printable(node)).map(action=>({action,label:labels[action],reason:editing&&['move','copy','delete','download','print','permissions'].includes(action)?'请先保存或取消编辑':actionReason(state,node,userId,action)}));
+  return order.filter(action=>action!=='permissions'||libraryType(state.spaces.find(space=>space.id===node.spaceId))!=='personal').filter(action=>action!=='edit'||!editing&&node.type!=='folder'&&node.format!=='file').filter(action=>action!=='print'||printable(node)).map(action=>({action,label:labels[action],reason:editing&&['move','copy','delete','download','print','permissions'].includes(action)?'请先保存或取消编辑':actionReason(state,node,userId,action)}));
 }
 export default function FileMenu({state,node,userId,context='list',showShare=false,onShare,onAction,editing=false}){
   const [open,setOpen]=useState(false),[position,setPosition]=useState({top:0,left:0}),trigger=useRef(null),menu=useRef(null),wrap=useRef(null);

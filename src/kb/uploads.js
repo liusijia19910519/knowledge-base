@@ -1,9 +1,11 @@
+import { prepareUploadLocation } from './folderUploads.js';
+import { FILE_DATABASE } from './prototypeData.js';
 import { validateDestination, uniqueContentName } from './contentCreation.js';
 import { contentRights } from './access.js';
 import { loadState } from './store.js';
 export const MAX_FILE_SIZE=50*1024*1024;
 let opening;
-function database(){if(!opening)opening=new Promise((resolve,reject)=>{const request=indexedDB.open('knowledge-original-files',1);request.onupgradeneeded=()=>request.result.createObjectStore('files');request.onsuccess=()=>resolve(request.result);request.onerror=()=>{opening=null;reject(Error('文件存储不可用，请重试'));};});return opening;}
+function database(){if(!opening)opening=new Promise((resolve,reject)=>{const request=indexedDB.open(FILE_DATABASE,1);request.onupgradeneeded=()=>request.result.createObjectStore('files');request.onsuccess=()=>resolve(request.result);request.onerror=()=>{opening=null;reject(Error('文件存储不可用，请重试'));};});return opening;}
 async function writeBlob(id,blob){const db=await database();await new Promise((resolve,reject)=>{const tx=db.transaction('files','readwrite');tx.objectStore('files').put(blob,id);tx.oncomplete=resolve;tx.onerror=()=>reject(Error('保存文件失败，可能存储空间不足'));tx.onabort=()=>reject(Error('文件保存已中断'));});}
 async function removeBlob(id){const db=await database();await new Promise((resolve,reject)=>{const tx=db.transaction('files','readwrite');tx.objectStore('files').delete(id);tx.oncomplete=resolve;tx.onerror=reject;});}
 export async function readUploadedBlob(blobId){const db=await database();return new Promise((resolve,reject)=>{const request=db.transaction('files').objectStore('files').get(blobId);request.onsuccess=()=>request.result?resolve(request.result):reject(Error('原始文件暂不可用，请重新上传'));request.onerror=()=>reject(Error('读取文件失败，请重试'));});}
@@ -24,8 +26,8 @@ export async function persistUpload(file,fields,userId,update,{cancelled=()=>fal
     onProgress(15,'读取文件');const textFile=/\.(txt|md|csv|json|log)$/i.test(file.name)||file.type.startsWith('text/');
     const body=textFile&&file.size<=2*1024*1024?await file.text():'';
     if(cancelled())throw Error('已取消');onProgress(45,'保存原文件');await writeBlob(blobId,file);
-    if(cancelled())throw Error('已取消');let node;
-    update(state=>{if(state.viewAs!==userId)throw Error('登录用户已变化，上传已停止');node=prepareUploadedNode(state,file,fields,userId,blobId,body);return {...state,nodes:[...state.nodes,node],recents:[node.id,...state.recents].slice(0,30)};});
-    committed=true;onProgress(100,'上传完成');return node;
+    if(cancelled())throw Error('已取消');let node,assignments=[];
+    update(state=>{if(state.viewAs!==userId)throw Error('登录用户已变化，上传已停止');if(cancelled())throw Error('已取消');const prepared=prepareUploadLocation(state,fields,userId);assignments=prepared.assignments;node=prepareUploadedNode(prepared.state,file,prepared.fields,userId,blobId,body);return {...prepared.state,nodes:[...prepared.state.nodes,node],recents:[node.id,...state.recents].slice(0,30)};});
+    committed=true;for(const [path,id] of assignments)fields.folderSession.folders.set(path,id);onProgress(100,'上传完成');return node;
   }finally{if(!committed)await removeBlob(blobId).catch(()=>{});}
 }

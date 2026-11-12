@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>产品介绍 · 企业知识库</title>
+  <style>
+    :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:#293648;background:#f8fafc;font-synthesis:none;line-height:1.65}
+    *{box-sizing:border-box}body{margin:0}a{color:inherit;text-decoration:none}button,a{-webkit-tap-highlight-color:transparent}a:focus-visible,summary:focus-visible{outline:2px solid #5288dd;outline-offset:4px}
+    .topbar{background:#ffffffed;border-bottom:1px solid #e5eaf1;position:sticky;top:0;z-index:2;backdrop-filter:blur(12px)}.topbar-inner{max-width:1160px;margin:auto;min-height:68px;padding:12px 28px;display:flex;align-items:center;gap:12px}.brand-mark{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;background:#eaf1ff;color:#397bea;font-size:17px;font-weight:650}.brand{font-size:15px;font-weight:600}.version{font-size:11px;color:#8592a3;border-left:1px solid #e1e7ef;padding-left:12px}.enter{margin-left:auto;padding:7px 15px;background:#397bea;color:white;border-radius:6px;font-size:12px;white-space:nowrap}.enter:hover{background:#2d6dd6}
+    main{max-width:1160px;margin:auto;padding:48px 28px 70px}.eyebrow{font-size:11px;letter-spacing:.12em;color:#6783aa;font-weight:600}h1{font-size:34px;letter-spacing:-1px;line-height:1.35;margin:12px 0 14px}h2{font-size:21px;margin:0;letter-spacing:-.4px}h3{font-size:15px;margin:0 0 8px}p{margin:0}.lead{font-size:14px;color:#748196;max-width:720px;line-height:1.9}.anchors{display:flex;gap:8px;flex-wrap:wrap;margin-top:24px}.anchors a{padding:5px 12px;border:1px solid #e0e6ee;border-radius:6px;background:white;font-size:12px;color:#68788e}.anchors a:hover{border-color:#b6cbea;color:#397bea}section{margin-top:42px;scroll-margin-top:92px}.section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:18px}.section-head>span{font-size:11px;color:#94a1b1}.section-copy{font-size:12px;color:#8592a4;margin:5px 0 0}
+    .architecture{border:1px solid #e1e7ef;border-radius:12px;background:#fff;padding:24px}.architecture-root{text-align:center;padding:16px;border:1px solid #d8e5fb;border-radius:8px;background:#f2f7ff}.architecture-root b{font-size:18px;color:#345c93}.architecture-root p{font-size:12px;color:#7b90ae;margin-top:3px}.connector{height:25px;width:1px;background:#d8e3f0;margin:auto}.modules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.module{border:1px solid #e4e9f0;border-radius:8px;padding:18px;min-height:150px}.module-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}.module-head h3{margin:0}.module-index{font-size:10px;font-weight:600;background:#eef3fa;color:#7891b2;padding:2px 5px;border-radius:4px}.module p{font-size:12px;color:#8491a3;line-height:1.8}.module ul{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:5px}.module li{font-size:11px;color:#667990;padding:2px 6px;background:#f5f7fa;border-radius:4px}.module.personal{border-top:3px solid #8ba9d6}.module.shared{border-top:3px solid #6ab7a5}.module.plaza{border-top:3px solid #ddbb7a}.foundation{margin-top:16px;background:#f7f9fc;border-radius:7px;padding:13px 16px;display:flex;gap:10px 20px;align-items:center;flex-wrap:wrap;font-size:11px;color:#8593a6}.foundation b{font-size:12px;color:#536985}
+    .space-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.space-card{padding:22px;border-radius:10px;border:1px solid #e1e7ef;background:white}.space-card>small{font-size:10px;color:#8b9db3;letter-spacing:.1em}.space-card h3{font-size:17px;margin:6px 0 9px}.space-card p{font-size:12px;color:#78879a;line-height:1.9}.space-card strong{display:block;font-size:11px;font-weight:500;color:#55779d;border-top:1px solid #edf0f5;padding-top:12px;margin-top:15px}
+    .table-wrap{overflow:auto;border:1px solid #e1e7ef;border-radius:10px;background:white}table{border-collapse:collapse;width:100%;font-size:12px;text-align:left;min-width:670px}th{background:#f4f7fb;font-weight:500;color:#718399;padding:12px 18px}td{border-top:1px solid #edf0f5;padding:15px 18px;vertical-align:top;color:#7a879a;line-height:1.9}td:first-child{color:#3f5673;font-weight:500;width:150px}td:nth-child(2){width:210px;color:#566c88}
+    .flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.step{padding:21px;background:white;border:1px solid #e1e7ef;border-radius:9px}.step>span{font-size:11px;color:#8aa3c7}.step h3{margin:7px 0;font-size:14px}.step p{font-size:12px;color:#8592a3}.rule-note{margin-top:14px;padding:14px 18px;border-left:3px solid #adc6e9;background:#edf4fd;color:#758ca9;font-size:12px;border-radius:0 6px 6px 0}
+    details{margin-top:14px;background:#fff;border:1px solid #e1e7ef;border-radius:9px;padding:17px 20px}summary{font-size:13px;font-weight:500;color:#526984;cursor:pointer}details ul{margin:13px 0 2px;padding-left:19px;color:#7b8b9f;font-size:12px;line-height:2}footer{border-top:1px solid #e2e8f0;margin-top:44px;padding-top:20px;display:flex;justify-content:space-between;gap:16px;font-size:11px;color:#91a0b1}footer a{color:#507eb7}
+    .permissions-map{padding:24px;background:#fff;border:1px solid #e1e7ef;border-radius:12px}
+    .permission-part+.permission-part{margin-top:24px;padding-top:24px;border-top:1px solid #edf0f5}
+    .permission-part-title{display:flex;align-items:center;gap:9px;margin-bottom:14px}.permission-part-title>span{display:grid;place-items:center;width:23px;height:23px;border-radius:6px;background:#edf3fd;color:#6287bd;font-size:10px;font-weight:600}.permission-part-title h3{margin:0;font-size:14px}
+    .permission-boundaries{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.permission-boundary{padding:15px 17px;border-radius:8px;background:#f6f9fe;border:1px solid #e0e9f5}.permission-boundary.shared{background:#f3faf7;border-color:#dceee6}.permission-boundary.plaza{background:#fffaf1;border-color:#f0e5cd}.permission-boundary b{font-size:13px;color:#4c688e}.permission-boundary.shared b{color:#468575}.permission-boundary.plaza b{color:#a28851}.permission-boundary p{font-size:12px;color:#65768a;margin:6px 0}.permission-boundary small{display:block;font-size:11px;color:#8c9aac;line-height:1.8}
+    .permission-grant-flow{display:grid;grid-template-columns:1fr 42px 1.1fr 42px 1.6fr;align-items:center;gap:6px}.permission-node{padding:16px;border:1px solid #e2e8f0;border-radius:8px;min-width:0;text-align:center}.permission-node strong{display:block;font-size:13px;font-weight:550}.permission-node small{display:block;font-size:11px;color:#8b99ab;margin-top:5px}.permission-node.manager{background:#f2f7ff;border-color:#d9e6fa}.permission-subjects{display:flex;flex-direction:column;gap:7px}.permission-subjects>span{font-size:12px;color:#647b98;background:#f5f8fc;border:1px solid #e5ebf4;border-radius:5px;padding:5px 7px}.permission-arrow{text-align:center;color:#a1b3cb;font-size:22px;line-height:1.1}.permission-arrow small{display:block;font-size:10px;color:#879ab4;margin-top:5px;white-space:nowrap}.permission-resources{display:flex;align-items:center;justify-content:center;gap:10px;padding:15px 7px;background:#f7f9fc;border-radius:6px;flex-wrap:wrap}.permission-resources b{font-size:12px;color:#536d90;font-weight:500}.permission-resources i{font-style:normal;color:#a7b8ce}.permission-caption{font-size:11px;color:#8897aa;line-height:1.9;margin-top:12px}
+    .permission-formula{display:grid;grid-template-columns:1fr 22px 1fr 28px 1fr;align-items:center;gap:9px}.permission-formula>div{padding:13px 12px;text-align:center;border:1px solid #e4eaf2;border-radius:7px;background:#fafbfd}.permission-formula b{display:block;font-size:12px;font-weight:500;color:#5a708b}.permission-formula small{display:block;margin-top:4px;font-size:11px;color:#90a0b3}.permission-formula>span{text-align:center;color:#9aafca;font-size:20px}.permission-formula .permission-result{background:#edf5ff;border-color:#d6e5fb}.permission-result b{color:#3e75be}
+    .permission-levels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:15px}.permission-level{padding:13px 14px;border:1px solid #e2e9f3;border-radius:7px}.permission-level:nth-child(2){background:#f9fbfe}.permission-level:nth-child(3){background:#f2f7ff}.permission-level:nth-child(4){background:#eaf2ff;border-color:#cfdff6}.permission-level>span{font-size:10px;color:#8aa0bc}.permission-level b{display:block;font-size:12px;color:#4e6b92;margin:4px 0}.permission-level p{font-size:11px;color:#8494a9;line-height:1.8}.permission-level em{display:block;font-style:normal;color:#5f87bc;font-size:10px;margin-top:6px}.permission-example{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;padding:13px 16px;background:#f7f9fc;border-radius:7px;margin-top:13px;font-size:11px;color:#8495aa}.permission-example>strong{color:#547499;font-size:11px;font-weight:500}.permission-example>b{font-size:12px;color:#3978bc}.permission-protection{display:flex;gap:10px;align-items:flex-start;border-left:3px solid #9bbbe4;background:#f2f7fd;padding:12px 15px;border-radius:0 6px 6px 0;margin-top:13px}.permission-protection>b{font-size:11px;color:#557da9;white-space:nowrap}.permission-protection>p{font-size:11px;color:#7c90a9;line-height:1.85}
+    .permission-transfer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.permission-transfer{padding:16px;border:1px solid #e2e8f0;border-radius:8px}.permission-transfer h4{font-size:12px;margin:0 0 10px;color:#5a7190}.permission-transfer-path{display:flex;align-items:center;gap:8px}.permission-transfer-path b{font-size:12px;font-weight:500;padding:7px 11px;border-radius:5px;background:#f3f6fa;color:#677d98}.permission-transfer-path>span{font-size:20px;color:#9bb0cd}.permission-transfer p{font-size:11px;line-height:1.9;color:#8596aa;margin-top:11px}.permission-transfer p>strong{font-weight:500;color:#5b7da5}.permission-consistency{display:flex;align-items:center;justify-content:center;gap:8px 20px;flex-wrap:wrap;margin-top:20px;padding:13px 15px;border-radius:7px;background:#f4f7fb;font-size:11px;color:#8495aa}.permission-consistency b{font-size:12px;color:#5c7697;font-weight:500}.permissions-map details{border-color:#e6ecf4;background:#fcfdff}.permissions-map summary{font-size:12px}
+    @media(max-width:780px){main{padding:32px 18px 50px}.topbar-inner{padding:12px 18px}.version{display:none}h1{font-size:28px}.modules,.space-grid{grid-template-columns:1fr}.flow{grid-template-columns:repeat(2,minmax(0,1fr))}.architecture{padding:16px}.section-head{align-items:flex-start;flex-direction:column;gap:3px}footer{flex-direction:column}.permissions-map{padding:17px}.permission-boundaries{grid-template-columns:1fr}.permission-grant-flow{grid-template-columns:1fr}.permission-arrow{padding:3px}.permission-arrow>span{display:inline-block;transform:rotate(90deg)}.permission-arrow small{display:inline-block;margin:0 0 0 8px;vertical-align:middle}.permission-subjects{flex-direction:row;justify-content:center}.permission-subjects>span{flex:1;text-align:center}.permission-formula{grid-template-columns:1fr 18px 1fr}.permission-formula>span:nth-of-type(2){grid-column:1/-1;transform:rotate(90deg)}.permission-formula .permission-result{grid-column:1/-1}.permission-levels{grid-template-columns:repeat(2,minmax(0,1fr))}.permission-transfer-grid{grid-template-columns:1fr}.permission-protection{flex-direction:column;gap:4px}}
+    @media(max-width:420px){.flow{grid-template-columns:1fr}.brand{font-size:13px}.enter{padding:7px 10px}.topbar-inner{gap:8px}}
+    @media print{.topbar,.anchors,.enter,footer a{display:none}body{background:#fff}main{padding:0;max-width:none}section{break-inside:avoid;margin-top:25px}.module,.space-card,.step{break-inside:avoid}h1{font-size:28px}}
+  </style>
+</head>
+<body>
+  <header class="topbar"><div class="topbar-inner"><span class="brand-mark" aria-hidden="true">知</span><span class="brand">企业知识库</span><span class="version">产品介绍 · 功能架构初稿</span><a class="enter" href="./#/home">进入原型 →</a></div></header>
+  <main>
+    <div class="eyebrow">PRODUCT OVERVIEW</div>
+    <h1>让个人积累，成为团队知识</h1>
+    <p class="lead">围绕个人整理、团队协作和组织共享，统一管理知识库、文件夹与文件。通过清晰的权限边界，让资料能够被找到、被协作，也能在问 AI 中被引用和使用。</p>
+    <nav class="anchors" aria-label="产品介绍目录"><a href="#architecture">功能架构</a><a href="#permissions">权限说明</a><a href="#spaces">三类知识库</a><a href="#features">功能清单</a><a href="#journey">使用流程</a></nav>
+
+    <section id="architecture">
+      <div class="section-head"><h2>产品功能架构</h2><span>六个主要模块，共用内容和权限能力</span></div>
+      <div class="architecture">
+        <div class="architecture-root"><b>企业知识库</b><p>知识沉淀 · 协同管理 · 检索与使用</p></div><div class="connector" aria-hidden="true"></div>
+        <div class="modules">
+          <article class="module"><div class="module-head"><span class="module-index">01</span><h3>主页</h3></div><p>日常工作的统一入口，快速找到和创建内容。</p><ul><li>最近</li><li>收藏</li><li>与我共享</li><li>我共享的</li><li>新建 / 上传</li></ul></article>
+          <article class="module personal"><div class="module-head"><span class="module-index">02</span><h3>个人知识库</h3></div><p>仅自己可见和管理，整理草稿、笔记与个人资料。</p><ul><li>个人整理</li><li>文件夹管理</li><li>移动后协作</li></ul></article>
+          <article class="module shared"><div class="module-head"><span class="module-index">03</span><h3>共享知识库</h3></div><p>面向公司、部门或指定人员开展协作。</p><ul><li>内部分享</li><li>协作者授权</li><li>文件级权限</li></ul></article>
+          <article class="module plaza"><div class="module-head"><span class="module-index">04</span><h3>知识广场</h3></div><p>沉淀组织公共知识，公司全员可在线查看。</p><ul><li>全员查看</li><li>追加编辑 / 管理授权</li><li>保存即生效</li></ul></article>
+          <article class="module"><div class="module-head"><span class="module-index">05</span><h3>问 AI</h3></div><p>结合有权访问的知识提问、总结和辅助写作。</p><ul><li>知识选择</li><li>技能 / 专家</li><li>引用来源</li><li>对话记录</li></ul></article>
+          <article class="module"><div class="module-head"><span class="module-index">06</span><h3>回收站</h3></div><p>找回误删内容，或确认后彻底删除。</p><ul><li>原位置</li><li>恢复内容</li><li>选择恢复位置</li><li>彻底删除</li></ul></article>
+        </div>
+        <div class="foundation"><b>共用基础能力</b><span>知识库 → 文件夹 → 文件</span><span>文档 / 表格 / 幻灯片 / 上传文件</span><span>权限与继承</span><span>搜索 · 收藏 · 侧栏置顶</span><span>单项与批量操作</span></div>
+      </div>
+    </section>
+
+    <section id="permissions" aria-labelledby="permissions-title">
+      <div class="section-head"><h2 id="permissions-title">权限说明</h2><span>看四张图，理解谁能看、谁能改、谁能管理</span></div>
+      <div class="permissions-map">
+        <div class="permission-part">
+          <div class="permission-part-title"><span>01</span><h3>先看资料放在哪一类知识库</h3></div>
+          <div class="permission-boundaries">
+            <div class="permission-boundary"><b>个人知识库 · 自己用</b><p>仅本人查看和管理</p><small>不能直接加协作者；需要共享时，先把原内容移动到共享库或广场。</small></div>
+            <div class="permission-boundary shared"><b>共享知识库 · 按需协作</b><p>授权给谁，谁能访问</p><small>可选公司、部门或人员。即使授权全公司，也仍是共享知识库。</small></div>
+            <div class="permission-boundary plaza"><b>知识广场 · 全员可读</b><p>全公司始终可以在线查看</p><small>这个底线不能取消；编辑、下载、管理等能力可另外授权。</small></div>
+          </div>
+        </div>
+
+        <div class="permission-part">
+          <div class="permission-part-title"><span>02</span><h3>共享库和广场：由管理者授权，权限沿目录向下传</h3></div>
+          <div class="permission-grant-flow" role="group" aria-label="管理者选择公司、部门或人员，在知识库、文件夹、文件各层授权；上级权限向下继承">
+            <div class="permission-node manager"><strong>有管理权限的人</strong><small>添加协作者、调整权限</small></div>
+            <div class="permission-arrow" aria-hidden="true"><span>→</span><small>选择对象</small></div>
+            <div class="permission-subjects"><span>公司 · 全体成员</span><span>部门 · 含下级部门</span><span>人员 · 指定个人</span></div>
+            <div class="permission-arrow" aria-hidden="true"><span>→</span><small>配置权限</small></div>
+            <div class="permission-node"><div class="permission-resources"><b>知识库</b><i aria-label="继承到">→</i><b>文件夹</b><i aria-label="继承到">→</i><b>文件</b></div><small>每一层都可授权，下级默认继承上级</small></div>
+          </div>
+          <p class="permission-caption">新建和上传会继承保存位置的权限。调整文件夹权限，会同步影响继承它的下级；只给某个文件授权，不会开放它旁边的其他私有内容。分享面向系统内部，不生成分享链接。</p>
+        </div>
+
+        <div class="permission-part">
+          <div class="permission-part-title"><span>03</span><h3>一个人有多个授权时，取能做事情最多的那一档</h3></div>
+          <div class="permission-formula" role="group" aria-label="上级继承的权限加本项单独授权，合并后取最高档；创建者保护和广场全员查看底线另行保证">
+            <div><b>上级传下来的权限</b><small>可移除普通继承来源</small></div><span aria-hidden="true">＋</span>
+            <div><b>这份资料单独添加的权限</b><small>父级变化时继续保留</small></div><span aria-hidden="true">→</span>
+            <div class="permission-result"><b>合并授权，取最高档</b><small>低权限不会压过高权限</small></div>
+          </div>
+          <div class="permission-levels" aria-label="权限从低到高，右侧包含左侧能力">
+            <div class="permission-level"><span>01 / 基础</span><b>仅查看</b><p>在线阅读<br>不能下载、打印或复制</p></div>
+            <div class="permission-level"><span>02 / 增加</span><b>可查看并下载</b><p>下载、打印<br>复制到可编辑的位置</p><em>包含「仅查看」能力</em></div>
+            <div class="permission-level"><span>03 / 再增加</span><b>可编辑</b><p>编辑、重命名<br>新建文件夹和内容、上传</p><em>包含前两档能力</em></div>
+            <div class="permission-level"><span>04 / 最高</span><b>可管理</b><p>配置权限、邀请协作者<br>移动、删除与恢复</p><em>包含前三档能力</em></div>
+          </div>
+          <div class="permission-example"><strong>举个例子</strong><span>公司：仅查看</span><span aria-hidden="true">＋</span><span>产品部：可编辑</span><span aria-hidden="true">＋</span><span>陈可个人：仅查看</span><span aria-hidden="true">→</span><b>产品部的陈可：可编辑</b></div>
+          <div class="permission-protection"><b>始终保留的权限边界</b><p>当前知识库创建者、文件／文件夹自身创建者、当前上级文件夹创建者的管理权受保护；广场内的所有内容始终保留公司全员在线查看。个人库始终只有本人可以访问。</p></div>
+          <details><summary>父级权限变了，文件自己的设置会怎样？</summary><ul><li>父级新增、修改或撤销授权，继承部分随之更新；文件自身添加的授权继续保留。</li><li>在文件上移除某条普通继承来源，只影响该来源；即使上级以后重新添加，也不会自动恢复，需手动恢复继承。</li><li>同一个人可能同时通过公司、部门和个人获得权限，移除其中一条，不会抵消其他来源的权限。</li><li>授权修改先暂存，保存后统一生效，取消不改变已有权限；仅分享时只增加协作者，修改已有授权需进入权限管理。</li></ul></details>
+        </div>
+
+        <div class="permission-part">
+          <div class="permission-part-title"><span>04</span><h3>移动和复制，按新位置重新给权限</h3></div>
+          <div class="permission-transfer-grid">
+            <div class="permission-transfer"><h4>移动 · 原文件换位置</h4><div class="permission-transfer-path"><b>原目录</b><span aria-hidden="true">→</span><b>目标目录</b></div><p>需要<strong>管理全部源内容＋编辑目标目录</strong>。原位置不留副本，原普通授权被清除，继承新位置；原协作者可能失去访问。文件身份、正文和创建者不变，管理保护随当前位置重新计算。</p></div>
+            <div class="permission-transfer"><h4>复制 · 生成独立副本</h4><div class="permission-transfer-path"><b>原文件保留</b><span aria-hidden="true">→</span><b>新位置的副本</b></div><p>需要<strong>查看并下载全部源内容＋编辑目标目录</strong>。副本由复制人创建，继承新位置权限。只有在线查看权限时，不能用复制绕过下载限制。</p></div>
+          </div>
+          <p class="permission-caption">移入个人库：内容及全部子项必须由本人创建，移动后仅自己可见；混合创建人的文件夹可在具备权限时复制。删除与取消共享是两件事：删除移入回收站，恢复仍按权限检查；彻底删除无法恢复。</p>
+        </div>
+        <div class="permission-consistency"><b>一套权限，贯穿所有入口</b><span>列表与搜索</span><span>分享与协作</span><span>下载与打印</span><span>回收站</span><span>问 AI 的知识与引用</span></div>
+      </div>
+    </section>
+
+    <section id="spaces">
+      <div class="section-head"><h2>三类知识库，各有清晰边界</h2></div>
+      <div class="space-grid">
+        <article class="space-card"><small>PERSONAL</small><h3>个人知识库</h3><p>适合个人草稿、工作笔记与备忘。仅本人查看和管理；需要协作时，通过分享引导将原内容移动到共享库或广场。</p><strong>个人内容不直接添加协作者</strong></article>
+        <article class="space-card"><small>SHARED</small><h3>共享知识库</h3><p>适合项目资料、部门协作与指定成员共享。知识库、文件夹和文件均可配置公司、部门或人员的权限。</p><strong>授权全公司后，仍属于共享知识库</strong></article>
+        <article class="space-card"><small>PLAZA</small><h3>知识广场</h3><p>适合公司制度、操作手册和组织知识。所有下级内容固定保留全公司在线查看，可再授予编辑、下载或管理权限。</p><strong>无需发布流程，全员查看底线不可取消</strong></article>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="section-head"><h2>主要功能清单</h2><span>按业务动作理解产品</span></div>
+      <div class="table-wrap"><table><thead><tr><th scope="col">能力</th><th scope="col">主要功能</th><th scope="col">交互与业务规则</th></tr></thead><tbody>
+        <tr><td>内容创建</td><td>新建知识库、文档、表格、幻灯片、文件夹</td><td>主页先选空间和保存位置；分类页固定空间；库内使用当前目录。在线内容在独立编辑标签页打开，文件夹在列表中命名确认。</td></tr>
+        <tr><td>文件上传与查看</td><td>上传、进度、预览、下载</td><td>选择位置后上传；库内直接选择文件。完成后保留在列表中；按文件类型提供预览或明确的预览限制。</td></tr>
+        <tr><td>整理与流转</td><td>重命名、收藏、移动、复制、批量操作</td><td>可在有权限的三类知识库之间流转。移动保留原文件身份并继承目标权限；复制生成独立副本。移动回个人库的内容须全部由本人创建。</td></tr>
+        <tr><td>协作与权限</td><td>内部分享、完整权限管理、权限继承</td><td>授权对象支持公司、部门与人员；提供仅查看、可查看并下载、可编辑、可管理四档。继承与本项授权合并，重叠取最高权限，创建者管理权受保护。</td></tr>
+        <tr><td>知识库设置</td><td>名称、简介、图标、封面、整库删除</td><td>支持预置图标与封面，也可上传图片；保存后生效，取消不修改。类型创建时确定，设置中不提供转换。管理者可删除整库，并在回收站恢复或彻底删除。</td></tr>
+        <tr><td>查找与常用内容</td><td>搜索、主页四个标签、侧栏置顶</td><td>只检索有权查看的内容；收藏支持文件和文件夹。置顶知识库可在左侧拖拽排序，刷新后保留。</td></tr>
+        <tr><td>知识使用与 AI</td><td>知识问答、总结、选区引用、辅助写作</td><td>选择当前文档、知识库或其他可访问知识；引用可回到来源。文件页 AI 面板可调整宽度，选中文字可作为提问上下文。</td></tr>
+        <tr><td>删除与恢复</td><td>移入回收站、恢复、彻底删除</td><td>普通删除可恢复；原位置失效时选择合法恢复位置。彻底删除需再次确认，并明确无法恢复。</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="journey">
+      <div class="section-head"><h2>一条典型使用流程</h2></div>
+      <div class="flow"><article class="step"><span>STEP 01</span><h3>创建与沉淀</h3><p>在个人库记录笔记，或在有编辑权限的位置创建、上传资料。</p></article><article class="step"><span>STEP 02</span><h3>整理与协作</h3><p>通过文件夹整理内容，将需要协作的个人资料移动到共享库。</p></article><article class="step"><span>STEP 03</span><h3>授权与共享</h3><p>邀请内部协作者、配置权限；组织公共资料放到知识广场。</p></article><article class="step"><span>STEP 04</span><h3>查找与使用</h3><p>通过搜索、收藏、置顶或问 AI，找到并使用有权访问的知识。</p></article></div>
+      <p class="rule-note">知识库类型固定，文件可以按权限跨库移动。移动会重置普通授权并继承目标位置，原协作者可能失去访问；公司或部门授权范围不会自动改变库类型。</p>
+      <details><summary>补充了解：权限如何影响操作？</summary><ul><li>仅查看：在线阅读；可查看并下载：增加下载、打印与复制能力。</li><li>可编辑：可编辑、新建和上传；可管理：进一步管理权限、移动和删除。</li><li>文件本身、当前知识库及祖先文件夹创建者的管理权限受到保护。</li><li>移动需管理全部源内容并能编辑目标目录；复制还需查看、下载全部源内容。</li><li>个人库仅本人访问；广场始终保留全员在线查看，其他授权按实际生效权限执行。</li></ul></details>
+      <details><summary>本页说明与原型范围</summary><ul><li>这是根据当前产品规则绘制的功能架构初稿，便于业务人员了解模块、操作和权限边界。</li><li>当前为交互原型，本地演示数据与真实生产系统分开；问 AI 回答为模拟结果。</li><li>管理后台不在本轮介绍范围。具体交互仍以原型及后续统一验收结果为准。</li></ul></details>
+    </section>
+    <footer><span>企业知识库 · 产品功能架构初稿</span><a href="./#/home">打开原型，查看具体交互 →</a></footer>
+  </main>
+</body>
+</html>

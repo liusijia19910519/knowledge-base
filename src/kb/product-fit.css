@@ -37,6 +37,12 @@ body { min-width: 0; overflow: hidden; }
 .kb-identity button {
   width: 100%; height: 32px; margin-top: 8px; border: 1px solid #e1e2e4; border-radius: 8px; background: #fff; font-size: 12px; color: #4f5156;
 }
+.kb-footer-actions{display:flex;align-items:center;gap:8px;margin-top:8px}
+.kb-product-intro{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:1;min-width:0;height:32px;padding:0 9px;border:1px solid #d8e3f4;border-radius:6px;background:#fff;color:#4778bc;font-size:12px;text-decoration:none;white-space:nowrap}
+.kb-product-intro:hover{background:#f4f8ff;border-color:#adc5e9}
+.kb-identity .kb-reset-example{flex:0 0 auto;width:auto;height:28px;margin:0;padding:0 7px;border-color:transparent;border-radius:6px;background:transparent;font-size:11px;color:#8b94a1;white-space:nowrap;cursor:pointer}
+.kb-identity .kb-reset-example:hover{background:#e5ebf4;color:#53647b}
+.kb-product-intro:focus-visible,.kb-reset-example:focus-visible{outline:2px solid #85a9e4;outline-offset:2px}
 .kb-inline-identity { display: flex; align-items: center; gap: 8px; color: #696c72; font-size: 12px; }
 .kb-inline-identity select { width: 168px; }
 

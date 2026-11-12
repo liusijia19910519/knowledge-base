@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { parseContent } from './contentCreation.js';
 
-export default function SimpleContentEditor({format,value,editing,onChange}) {
-  const [active,setActive]=useState(0),data=parseContent(format,value);
+export default function SimpleContentEditor({format,value,editing,onChange,activeIndex,onActiveChange}) {
+  const [localActive,setLocalActive]=useState(0),data=parseContent(format,value);
+  const active=activeIndex??localActive,setActive=onActiveChange||setLocalActive;
   if(format==='sheet'){
     const rows=data.rows,columns=rows[0].length;
     const change=rows=>onChange(JSON.stringify({rows}));

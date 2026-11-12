@@ -22,7 +22,7 @@ export function mergeSubjects(...groups){
   }
   return [...merged.values()];
 }
-export function initialAccess(state,view){return accessFromSubjects(state,view==='plaza'?[{type:'company',id:companyId(state),role:'viewer'}]:[]);}
+export function initialAccess(state,view){return accessFromSubjects(state,[]);}
 export function toSubjectAccess(state,access,ownerIds=[]){
   if(Array.isArray(access.subjects))return accessFromSubjects(state,access.subjects.map(s=>({...s})).filter(s=>!(s.type==='person'&&ownerIds.includes(s.id))));
   const subjects=[];

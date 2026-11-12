@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { File, FileText, Table, ProjectorScreenChart, FolderOpen, Plus, CaretDown, X } from '@phosphor-icons/react';
+import { Plus, CaretDown, X } from '@phosphor-icons/react';
+import ContentIcon from './ContentIcon.jsx';
+export { default as ContentIcon } from './ContentIcon.jsx';
 import { CONTENT_TYPES, createContent, validateCreation, writableLibraries } from './contentCreation.js';
 import { loadState } from './store.js';
 import { contentView } from './access.js';
 import { LocationBrowser, useLocationDialog } from './LocationPicker.jsx';
 import './creation.css';
 
-const icons={doc:FileText,sheet:Table,slides:ProjectorScreenChart,folder:FolderOpen,file:File};
-export function ContentIcon({node,size=19,...props}) {const Icon=icons[node.type==='folder'?'folder':node.format||'doc']||FileText;return <Icon size={size} {...props}/>;}
 export function CreateMenu({variant='compact',onChoose,disabled=false,reason=''}) {
   const [open,setOpen]=useState(false),root=useRef(null),trigger=useRef(null);
   useEffect(()=>{
@@ -16,7 +16,7 @@ export function CreateMenu({variant='compact',onChoose,disabled=false,reason=''}
     const keys=e=>{if(e.key==='Escape'){e.stopPropagation();setOpen(false);trigger.current?.focus();}if(['ArrowDown','ArrowUp'].includes(e.key)&&root.current?.contains(document.activeElement)){e.preventDefault();const buttons=[...root.current.querySelectorAll('[role=menuitem]')],i=buttons.indexOf(document.activeElement);buttons[(i+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length]?.focus();}};
     document.addEventListener('pointerdown',outside);document.addEventListener('keydown',keys);root.current?.querySelector('[role=menuitem]')?.focus();return()=>{document.removeEventListener('pointerdown',outside);document.removeEventListener('keydown',keys);};
   },[open]);
-  return <div ref={root} className={`new-create-menu ${variant==='library'?'knowledge-action-menu':''} variant-${variant}`}><button ref={trigger} type="button" className="new-create-trigger" aria-label={variant==='library'?'新建内容':'新建'} aria-haspopup="menu" aria-expanded={open} disabled={disabled} title={disabled?reason:undefined} onClick={()=>setOpen(v=>!v)}><Plus size={variant==='compact'?16:22}/>{variant==='compact'?'新建':<span><strong>{variant==='home'?'新建':'新建内容'}</strong><small>文档、表格、幻灯片或文件夹</small></span>}<CaretDown size={14}/></button>{open&&<div className="new-create-options" role="menu" aria-label="选择新建类型">{CONTENT_TYPES.map(([format,label])=>{const Icon=icons[format];return <button type="button" role="menuitem" key={format} onClick={()=>{setOpen(false);trigger.current?.focus();onChoose(format);}}><Icon size={18}/><span>{label}</span></button>;})}</div>}</div>;
+  return <div ref={root} className={`new-create-menu ${variant==='library'?'knowledge-action-menu':''} variant-${variant}`}><button ref={trigger} type="button" className="new-create-trigger" aria-label={variant==='library'?'新建内容':'新建'} aria-haspopup="menu" aria-expanded={open} disabled={disabled} title={disabled?reason:undefined} onClick={()=>setOpen(v=>!v)}><Plus size={variant==='compact'?16:22}/>{variant==='compact'?'新建':<span><strong>{variant==='home'?'新建':'新建内容'}</strong><small>文档、表格、幻灯片或文件夹</small></span>}<CaretDown size={14}/></button>{open&&<div className="new-create-options" role="menu" aria-label="选择新建类型">{CONTENT_TYPES.map(([format,label])=>{return <button type="button" role="menuitem" key={format} onClick={()=>{setOpen(false);trigger.current?.focus();onChoose(format);}}><ContentIcon aria-hidden="true" node={{type:format==='folder'?'folder':'doc',format}} size={16}/><span>{label}</span></button>;})}</div>}</div>;
 }
 
 export function launchDocument(update,fields,userId){
@@ -29,6 +29,7 @@ export default function CreationDialog({state,userId,context,update,onClose,onCr
   const root=useRef(null),submitLock=useRef(false);
   const label=CONTENT_TYPES.find(([id])=>id===context.format)?.[1],libraries=writableLibraries(state,userId,context.category);
   const fields={format:context.format,...position,lockedSpaceId:context.lockedSpaceId||'',category:context.category||''},targetView=position.view;
+  let destinationError='';try{validateCreation(state,fields,userId);}catch(err){destinationError=err.message;}
   const editorUrl=node=>`${window.location.href.split('#')[0]}#/doc/${node.id}?edit=1&view=${contentView(state,node,userId,targetView)}${node.parentId?`&folder=${node.parentId}`:''}`;
   useLocationDialog(root,()=>{if(!submitLock.current)onClose();});
   const submit=e=>{
@@ -47,7 +48,7 @@ export default function CreationDialog({state,userId,context,update,onClose,onCr
       {recovery||context.recoveryNode?<><p role="status">「{(recovery||context.recoveryNode).name}」已创建。浏览器未打开编辑页，可从下方继续，内容不会重复创建。</p><a className="new-editor-link" href={editorUrl(recovery||context.recoveryNode)} target="_blank" rel="noopener noreferrer">打开编辑页面</a><footer><button type="button" onClick={onClose}>完成</button></footer></>:<>
         <LocationBrowser state={state} userId={userId} value={position} onChange={next=>{setPosition(next);setError('');}} lockedSpaceId={context.lockedSpaceId||''} lockedView={context.category||(context.lockedSpaceId?context.view:'')||''}/>
         {!libraries.length&&<p className="new-create-error" role="alert">当前没有可编辑的知识库，请先创建知识库或获得编辑权限。</p>}{error&&<p className="new-create-error" role="alert">{error}</p>}
-        <footer><span>{position.spaceId?'已选择 1 个保存位置':'请选择一个保存位置'}</span><button type="button" onClick={onClose} disabled={busy}>取消</button><button type="submit" className="location-confirm" disabled={busy||!libraries.length}>{busy?'正在创建…':context.format==='folder'?'下一步：命名文件夹':'创建并打开'}</button></footer>
+        <footer><span>{position.spaceId?(destinationError||'已选择 1 个保存位置'):'请选择一个保存位置'}</span><button type="button" onClick={onClose} disabled={busy}>取消</button><button type="submit" className="location-confirm" disabled={busy||!!destinationError} title={destinationError||undefined}>{busy?'正在创建…':context.format==='folder'?'下一步：命名文件夹':'创建并打开'}</button></footer>
       </>}
     </form>
   </div>;
