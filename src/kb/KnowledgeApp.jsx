@@ -373,10 +373,10 @@ function HomePage({ state, userId, query, setQuery, onOpen, update, startUpload,
   const editable = writableLibraries(state, userId)[0];
   return <>
     <header className="knowledge-home-header"><h1>主页</h1><label><MagnifyingGlass size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索文档" /></label></header>
-    <div className="knowledge-home-actions">
+    <div className="knowledge-home-actions kb-shortcut-actions">
       <CreateMenu variant="home" disabled={!editable} reason="没有可编辑的知识库，请先创建知识库或获得编辑权限" onChoose={format => startCreate(format)} />
       <UploadMenu variant="home" disabled={!editable} reason="没有可编辑的位置" onChoose={kind=>startUpload({kind})}/>
-      <button type="button" onClick={onCreateLibrary}><Books size={22}/><span><strong>新建知识库</strong></span><CaretRight size={15}/></button>
+      <button type="button" className="kb-shortcut-create-library" onClick={onCreateLibrary}><span className="kb-shortcut-icon" aria-hidden="true"><BookBookmark size={22} weight="fill"/></span><span><strong>新建知识库</strong></span><CaretRight size={16}/></button>
     </div>
     <div className="knowledge-home-toolbar"><div role="tablist" aria-label="文档范围">{[["recent", "最近"], ["favorite", "收藏"], ["shared", "与我共享"], ["mine", "我共享的"]].map(([value, label]) => <button className={tab === value ? "active" : ""} role="tab" aria-selected={tab === value} key={value} onClick={() => setTab(value)}>{label}</button>)}</div><HomeDisplaySettings state={state} userId={userId} update={update}/></div>
     <div className="home-document-scroll"><div className="knowledge-document-table home-document-table">

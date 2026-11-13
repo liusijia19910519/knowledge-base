@@ -6,6 +6,7 @@ import "./detail-overrides.css";
 import "./knowledge-product.css";
 import "./kb/product-fit.css";
 import "./kb/interactionDetails.css";
+import "./kb/shortcutActions.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
