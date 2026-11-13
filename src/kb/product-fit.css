@@ -30,6 +30,7 @@ body { min-width: 0; overflow: hidden; }
 .knowledge-actions > .knowledge-action-menu > button svg:last-child { margin-left: auto; color: #9aa0a8; }
 
 .kb-identity { margin-top: auto; padding: 12px 6px 2px; border-top: 1px solid #e3e4e7; }
+.knowledge-product .knowledge-shell.subnav-collapsed .kb-identity { display: none; }
 .kb-identity small { display: block; margin: 0 8px 6px; color: #8d9096; font-size: 11px; }
 .kb-identity select, .kb-inline-identity select {
   width: 100%; height: 34px; border: 1px solid #e1e2e4; border-radius: 8px; background: #fff; padding: 0 8px; font-size: 12px;
