@@ -51,6 +51,14 @@
   gap: 0;
 }
 
+/* Library-page shortcut glyphs only. Descendant caret rules also match svg:last-child
+   inside .kb-shortcut-icon; inherit the box color (#4e7fe4) and cancel margin-left:auto.
+   Scoped to .knowledge-actions.kb-shortcut-actions so home and other .knowledge-actions are untouched. */
+.knowledge-actions.kb-shortcut-actions button .kb-shortcut-icon > svg {
+  color: inherit;
+  margin-left: unset;
+}
+
 .kb-shortcut-actions > .new-create-menu > .new-create-trigger > span:not(.kb-shortcut-icon),
 .kb-shortcut-actions > .upload-menu > button > span:not(.kb-shortcut-icon),
 .kb-shortcut-actions > .kb-shortcut-create-library > span:not(.kb-shortcut-icon) {
