@@ -1,0 +1,19 @@
+.recycle-table{overflow-x:auto}
+.knowledge-document-table.recycle-table .knowledge-document-row.recycle-row{display:grid;grid-template-columns:minmax(300px,1fr) 156px 112px 152px;gap:22px;min-width:800px;width:100%;min-height:78px;height:auto;padding:13px 10px;align-items:center;border-bottom:1px solid #e8edf4}
+.knowledge-document-table.recycle-table .recycle-row.head{min-height:38px;padding-top:0;padding-bottom:10px;font-size:11px;color:#96a1b1}
+.recycle-row .recycle-item-main{display:flex;align-items:center;gap:12px;min-width:0}
+.recycle-item-main>.content-type-icon,.recycle-item-main>.recycle-item-icon{flex-shrink:0}
+.recycle-item-icon{color:#6c8dbb}
+.recycle-item-copy{min-width:0;flex:1}
+.recycle-name-line{display:flex;align-items:center;gap:10px;min-width:0;line-height:20px}
+.recycle-name-line>strong{display:block;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:13px;font-weight:500;color:#40546e}
+.recycle-location{display:block;min-width:0;margin-top:4px;color:#94a2b5;font-size:11px;line-height:18px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.recycle-row>.recycle-time,.recycle-row>.recycle-creator{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#7d8b9e;font-size:12px}
+.recycle-row>.recycle-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0}
+.recycle-row-actions>.recycle-icon-action{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:32px;min-width:32px;height:32px;padding:0;border:1px solid #dce4ef;border-radius:6px;background:#fff;font-size:12px;line-height:1;white-space:nowrap;word-break:keep-all;color:#6d829e;cursor:pointer}
+.recycle-row-actions>.recycle-icon-action:hover{background:#f2f6fd;border-color:#bdd1ed;color:#3979d9}
+.recycle-row-actions>.recycle-delete{color:#bd7373}
+.recycle-row-actions>.recycle-delete:hover{background:#fff5f4;border-color:#edcdcd;color:#bd5a5a}
+.recycle-row-actions>.recycle-icon-action:focus-visible{outline:2px solid #3478f6;outline-offset:2px}
+.recycle-actions-heading{justify-self:end;padding-right:12px}
+@media(max-width:1000px){.knowledge-document-table.recycle-table .knowledge-document-row.recycle-row{grid-template-columns:minmax(280px,1fr) 140px 90px 144px;gap:16px;min-width:740px}.recycle-name-line{gap:7px}}

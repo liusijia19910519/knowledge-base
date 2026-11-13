@@ -1,0 +1,5 @@
+.content-type-icon{display:inline-block;vertical-align:middle;flex-shrink:0;overflow:visible}
+.content-type-icon>svg{pointer-events:none}
+.knowledge-library-detail .knowledge-detail-table.selectable .knowledge-detail-row{grid-template-columns:25px minmax(150px,1fr) 100px 110px 108px 76px}
+.knowledge-detail-row .file-type-label{font-size:11px;color:#7e8c9f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:900px){.knowledge-library-detail .knowledge-detail-table.selectable .knowledge-detail-row{grid-template-columns:22px minmax(100px,1fr) 70px 80px 90px 68px}}

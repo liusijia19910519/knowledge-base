@@ -1,0 +1,37 @@
+/* Keep existing glyphs/density; reserve separate, nonoverlapping click targets. */
+.file-row-actions{gap:4px;flex-shrink:0}
+.file-row-actions>button,.file-row-actions.document-menu>button,.document-window-actions .file-row-actions>button{width:32px;min-width:32px;height:32px;min-height:32px;padding:0;flex:0 0 32px;border-radius:6px}
+.file-row-actions>button:focus-visible,.library-wide-card>.knowledge-card-pin:focus-visible,.pinned-library-row>button:focus-visible{outline:2px solid #79a6ee;outline-offset:2px}
+.knowledge-detail-table.selectable{overflow-x:auto}
+.knowledge-detail-table.selectable .knowledge-detail-row{min-width:calc(684px + var(--file-tree-extra,0px));grid-template-columns:25px minmax(calc(190px + var(--file-tree-extra,0px)),1fr) 100px 110px 80px 104px;gap:10px}
+.expandable-file-table .row-main-name{padding-left:min(calc(var(--tree-depth,0)*16px),96px);gap:7px}
+.expandable-file-table .file-tree-caret,.expandable-file-table .file-tree-caret-slot{width:32px;height:32px;flex:0 0 32px}
+.expandable-file-table .file-tree-name{flex:1;min-width:0}
+.expandable-file-table .row-main-name>.scope-badge,.expandable-file-table .row-main-name>.creation-draft-badge,.expandable-file-table .access-path-note{flex-shrink:0}
+.expandable-file-table .directory-tree-empty{padding-left:calc(82px + min(var(--tree-depth,0)*16px,96px))}
+.library-wide-card>.knowledge-card-pin{width:32px;height:32px;top:11px;right:8px}
+.library-wide-card .knowledge-card-main>div{padding-right:34px}
+.library-wide-card .knowledge-card-main>div>.library-icon-visual{flex-shrink:0}
+.library-wide-card .knowledge-card-main strong,.library-wide-card .knowledge-card-main p{overflow-wrap:anywhere}
+.knowledge-product .pinned-library-row>.pin-drag-handle,.knowledge-product .pinned-library-row>.pin-remove{width:32px;height:32px;flex:0 0 32px}
+.knowledge-product .pinned-library-row>.pinned-library-open{overflow:hidden}
+.knowledge-product .pinned-library-open>.library-icon-visual{flex-shrink:0}
+.location-picker .location-caret,.location-picker .location-caret-slot{width:32px;height:32px;flex:0 0 32px}
+.subject-tree-row>button,.subject-tree-row>i{width:32px;height:32px;flex:0 0 32px}
+.subject-tree-row>button:focus-visible,.location-picker .location-caret:focus-visible{outline:2px solid #79a6ee;outline-offset:1px;border-radius:5px}
+.knowledge-detail-ai-drawer .document-ai-header button,.knowledge-doc-shell .document-ai-header button{width:32px;height:32px;min-width:32px;padding:0;display:grid;place-items:center}
+.knowledge-detail-breadcrumb{flex:1;min-width:0;overflow-x:auto;white-space:nowrap;padding:2px 0}
+.knowledge-detail-breadcrumb>span{flex-shrink:0;min-width:0}
+.knowledge-detail-breadcrumb button{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.knowledge-detail-list-toolbar>div{flex-shrink:0}
+.document-window-title{min-width:0}
+.document-title-edit{min-width:0;max-width:100%}
+.document-title-edit>strong,.document-title-button>strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.destination-permission-details{margin-top:6px}
+.destination-permission-details>summary{width:fit-content;cursor:pointer;font-size:10px;color:#728cac;line-height:20px}
+.destination-permission-details>summary:focus-visible{outline:2px solid #79a6ee;outline-offset:2px;border-radius:3px}
+.destination-permission-details .move-impact-grants{margin-top:6px}
+.access-dialog .decision-note{margin-bottom:0;color:#7d8fa9}
+.access-dialog [hidden]{display:none!important}
+.location-picker .move-impact{max-height:190px;overflow:auto}
+@media(hover:none){.library-wide-card>.knowledge-card-pin{opacity:1;pointer-events:auto}}

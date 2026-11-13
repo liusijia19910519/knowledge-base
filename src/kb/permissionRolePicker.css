@@ -1,0 +1,21 @@
+.knowledge-product-dialog .grant-row>.permission-role-control{display:inline-flex;flex:0 0 auto;justify-content:flex-end;align-items:center;margin:0;gap:0;min-width:0}
+.knowledge-product-dialog .grant-row .permission-role-trigger{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:126px;max-width:165px;height:31px;min-height:31px;padding:0 9px;border:1px solid #dce4ef;border-radius:6px;background:#fff;color:#5c6f89;font:400 11px/1.3 system-ui;box-shadow:none;cursor:pointer}
+.permission-role-trigger>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.permission-role-trigger>svg{flex-shrink:0;color:#91a0b5}
+.knowledge-product-dialog .grant-row .permission-role-trigger:hover{border-color:#b5c9e8;background:#f7faff}
+.knowledge-product-dialog .grant-row .permission-role-trigger[aria-expanded=true]{background:#edf4ff;border-color:#8aafe8;color:#397bea}
+.knowledge-product-dialog .grant-row .permission-role-trigger:focus-visible{outline:2px solid #8aafe8;outline-offset:2px}
+.knowledge-product-dialog .grant-row .permission-role-trigger:disabled{opacity:.45;cursor:not-allowed}
+.permission-role-menu{position:fixed;z-index:210;display:block;overflow:auto;overscroll-behavior:contain;padding:5px;background:#fff;border:1px solid #e0e6ef;border-radius:9px;box-shadow:0 10px 32px #253b5e24;color:#46576d;text-align:left;font:400 12px/1.5 system-ui}
+.permission-role-menu .permission-role-group{margin:4px 9px 6px;font-size:10px;color:#96a3b5}
+.permission-role-menu>button{display:flex;align-items:flex-start;gap:10px;min-height:49px;width:100%;margin:0;padding:9px 10px;border:0;border-radius:5px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.permission-role-menu>button>svg{flex-shrink:0;margin-top:2px;color:#8699b3}.permission-role-menu>button>span{min-width:0;flex:1}
+.permission-role-menu>button b{display:block;font-weight:500;font-size:12px}.permission-role-menu>button small{display:block;margin:3px 0 0;color:#96a2b3;font-size:10px;line-height:1.5}
+.permission-role-menu>button:hover,.permission-role-menu>button:focus-visible{background:#f2f6fc;outline:none}
+.permission-role-menu>button[aria-checked=true]{background:#edf4ff;color:#397bea}.permission-role-menu>button[aria-checked=true]>svg{color:#397bea}
+.permission-role-menu>button.is-separated{border-top:1px solid #e9edf3;border-radius:0;margin-top:5px;padding-top:12px}
+.permission-role-menu>button.is-danger,.permission-role-menu>button.is-danger>svg{color:#d46060}.permission-role-menu>button.is-danger:hover,.permission-role-menu>button.is-danger:focus-visible{background:#fff3f2}
+.permission-role-menu>button:disabled{cursor:default;opacity:.5}
+@media(max-width:540px){.knowledge-product-dialog .grant-row .permission-role-trigger{min-width:111px;max-width:136px;padding:0 7px;font-size:10px}}
+.permission-role-control{position:relative}
+.permission-role-menu .permission-role-effective{margin:3px 9px 8px;padding:6px 8px;border-radius:5px;background:#f0f5fd;color:#5679a7;font-size:11px;line-height:1.5}
+.permission-role-status{position:absolute;right:0;top:calc(100% + 4px);z-index:3;max-width:250px;width:max-content;padding:5px 8px;border:1px solid #dce7f6;border-radius:5px;background:#f1f6ff;color:#5b79a0;font-size:10px;line-height:1.6;box-shadow:0 3px 10px #243c6110;pointer-events:none}

@@ -1,0 +1,93 @@
+.knowledge-product-dialog.access-dialog.library-metadata-dialog{width:min(900px,calc(100vw - 24px));padding:24px}
+.knowledge-product-dialog .library-details-fields,.knowledge-product-dialog .library-details-fields :where(div){display:block;justify-content:initial;gap:0;margin:0;min-width:0}
+.knowledge-product-dialog .library-details-fields{margin:22px 0 26px}
+.knowledge-product-dialog .library-details-fields label,.library-cover-field>h3{display:block;font-size:13px;line-height:1.5;font-weight:500;color:#38414d;margin:0 0 10px}
+.library-details-fields .library-name-field,.library-details-fields .library-description-field{margin-bottom:24px}
+.knowledge-product-dialog .library-details-fields small{display:block;text-align:right;margin-top:5px;font-size:10px;color:#9ba6b5}
+.library-details-fields .library-name-control{display:flex;align-items:center;height:46px;padding:0 11px;gap:10px;border:1px solid #d9e0e9;border-radius:6px;background:#fff}
+.library-details-fields .library-name-control:focus-within{border-color:#83a9e5;box-shadow:0 0 0 2px #397bea12}
+.knowledge-product-dialog.access-dialog .library-name-control>input{height:42px;min-width:0;flex:1;width:100%;margin:0;padding:0;border:0;border-radius:0;box-shadow:none;outline:none;background:transparent;font:400 13px/1.5 system-ui;color:#414d5e}
+.library-name-control>.library-name-divider{height:23px;width:1px;background:#e3e7ed;flex-shrink:0}
+.library-details-fields .library-name-control>.library-icon-field.compact{display:block;flex-shrink:0;padding:0}
+.knowledge-product-dialog.access-dialog .library-icon-field.compact>button{display:block;width:28px;height:28px;min-height:0;padding:0;border:0;background:transparent;border-radius:6px;cursor:pointer}
+.library-icon-field.compact .library-icon-visual{border-radius:6px}
+.knowledge-product-dialog.access-dialog .library-description-field>textarea{display:block;width:100%;min-height:86px;max-height:180px;padding:12px 14px;border:1px solid #d9e0e9;border-radius:6px;font:400 13px/1.8 system-ui;resize:vertical;color:#414d5e;background:#fff}
+.library-cover-field{margin:0}.library-cover-field>h3{margin-bottom:10px}
+.library-details-fields .library-cover-picker{display:grid;grid-template-columns:194px minmax(0,1fr);gap:14px;padding:12px;border:1px solid #dfe5ed;border-radius:7px;align-items:stretch}
+.library-details-fields .library-cover-preview{position:relative;min-height:280px;overflow:hidden;border-radius:6px;background:#f1f6fe;color:#2d3b4b}
+.library-cover-preview.night{background:#242830;color:#fff}.library-cover-preview.amber{background:#fff4e4;color:#794c1e}.library-cover-preview.ice{background:#f0f6f8;color:#304759}
+.library-cover-surface{position:absolute;inset:0;display:block;width:100%;height:100%;pointer-events:none;background-position:center;background-size:cover;background-repeat:no-repeat}
+.library-details-fields .library-cover-preview>div{position:relative;z-index:1;padding:28px 22px;overflow:hidden;display:block}
+.library-cover-preview>div>strong{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:20px;font-weight:600;line-height:1.4;overflow-wrap:anywhere}
+.knowledge-product-dialog .library-cover-preview>div>p{font-size:12px;line-height:1.9;margin:9px 0 0;color:inherit;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:5;overflow:hidden;overflow-wrap:anywhere;opacity:.82}
+.library-details-fields .library-cover-options{display:flex;flex-direction:column;gap:9px;min-width:0}
+.library-details-fields .library-cover-toolbar{display:flex;align-items:center;justify-content:space-between;gap:5px;min-height:25px;flex-wrap:wrap}
+.library-details-fields .library-cover-tabs,.library-details-fields .library-cover-actions{display:flex;align-items:center;gap:5px}
+.knowledge-product-dialog.access-dialog .library-details-fields button{font:400 11px/1.3 system-ui;color:#606b7a;background:transparent;border:1px solid transparent;border-radius:5px;cursor:pointer;box-shadow:none}
+.knowledge-product-dialog.access-dialog .library-cover-tabs>button{height:25px;min-height:0;padding:0 7px;white-space:nowrap}
+.knowledge-product-dialog.access-dialog .library-cover-tabs>button[aria-selected=true]{background:#eaf0ff;color:#397bea}
+.knowledge-product-dialog.access-dialog .library-cover-tabs>button:hover{background:#f0f4fa}
+.knowledge-product-dialog.access-dialog .library-cover-actions>button{height:25px;min-height:0;display:flex;align-items:center;gap:5px;padding:0 5px;white-space:nowrap}
+.library-details-fields .library-cover-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px;max-height:232px;min-height:232px;overflow:auto;padding:2px;align-content:start;overscroll-behavior:contain}
+.knowledge-product-dialog.access-dialog .library-cover-grid>.library-cover-option{position:relative;display:block;width:100%;height:82px;padding:0;border:1px solid #dfe5ec;border-radius:6px;overflow:hidden;background:#f3f7fc}
+.knowledge-product-dialog.access-dialog .library-cover-grid[data-category=全部]>.library-cover-option:nth-child(-n+7){height:42px}
+.knowledge-product-dialog.access-dialog .library-cover-grid>.library-cover-option.selected{outline:2px solid #397bea;outline-offset:0;border-color:#fff}
+.knowledge-product-dialog.access-dialog .library-cover-grid>.library-cover-option:hover{border-color:#88ade7}
+.library-cover-option>svg{position:absolute;bottom:4px;right:4px;background:#397bea;color:#fff;border-radius:50%;padding:2px;width:17px;height:17px}
+.library-details-fields .library-cover-upload-note{margin:0;display:flex;align-items:center;gap:5px;font-size:10px;line-height:1.5;color:#98a4b3;min-height:15px}
+.library-cover-upload-note>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.library-cover-upload-note>svg{flex-shrink:0}
+.knowledge-product-dialog.access-dialog .library-details-fields button:focus-visible{outline:2px solid #6c98e1;outline-offset:2px}
+.knowledge-card.library-wide-card.has-library-cover{background:none;color:#33485f}
+.knowledge-card.library-wide-card.has-library-cover:after{display:none}
+.knowledge-card.has-library-cover>.library-cover-surface{border-radius:inherit}
+.knowledge-card.has-library-cover .knowledge-card-main>div,.knowledge-card.has-library-cover .knowledge-card-main>p{position:relative;z-index:1}
+.knowledge-card.has-library-cover .knowledge-card-main strong{max-width:100%}
+.knowledge-card.has-library-cover.night>.knowledge-card-pin.is-pinned{color:#397bea}
+.knowledge-card.has-library-cover>.library-cover-surface:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#ffffffb0,#ffffff30 65%,transparent)}
+.knowledge-card.has-library-cover>.library-cover-surface.is-uploaded-cover:after{background:linear-gradient(180deg,#fffffff5 0%,#ffffffed 27%,#ffffffd9 42%,#ffffff18 66%,transparent 80%)}
+.library-cover-summary-button:has(>.is-uploaded-cover)>.library-cover-summary-text,.library-cover-preview:has(>.is-uploaded-cover)>div{background:linear-gradient(180deg,#fffffff5 0%,#ffffffed 50%,#ffffffb0 75%,transparent);color:#304759}
+.library-cover-preview:has(> .library-cover-surface)>div{background:linear-gradient(180deg,#ffffff70,transparent)}
+@media(max-width:740px){.library-details-fields .library-cover-picker{grid-template-columns:152px minmax(0,1fr);gap:12px}.library-details-fields .library-cover-preview>div{padding:22px 15px}.library-cover-preview>div>strong{font-size:17px}.library-details-fields .library-cover-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.knowledge-product-dialog.access-dialog .library-cover-grid>.library-cover-option:nth-child(-n+7){height:72px}}
+@media(max-width:540px){.knowledge-product-dialog.access-dialog.library-metadata-dialog{padding:18px}.library-details-fields .library-cover-picker{grid-template-columns:1fr}.library-details-fields .library-cover-preview{min-height:156px}.library-details-fields .library-cover-preview>div{max-width:70%;padding:20px}.library-cover-preview>.library-cover-surface{background-position:center 62%}.library-details-fields .library-cover-grid{grid-template-columns:repeat(5,minmax(0,1fr));min-height:170px;max-height:170px}.knowledge-product-dialog.access-dialog .library-cover-grid>.library-cover-option,.knowledge-product-dialog.access-dialog .library-cover-grid>.library-cover-option:nth-child(-n+7){height:72px}.library-details-fields .library-cover-upload-note{font-size:9px}}
+
+/* Shared overview: cover at left, icon/name and description at right. */
+.knowledge-product-dialog .library-details-fields.library-metadata-overview{display:grid;grid-template-columns:174px minmax(0,1fr);align-items:stretch;gap:22px;margin:23px 0 28px}
+.library-metadata-overview .library-cover-summary{display:flex;flex-direction:column;gap:0}
+.library-metadata-overview .library-field-label{display:block;font-size:13px;font-weight:500;color:#38414d;line-height:1.5;margin:0 0 10px}
+.knowledge-product-dialog.access-dialog .library-details-fields .library-cover-summary-button{position:relative;display:block;flex:none;min-height:248px;width:100%;height:248px;padding:0;overflow:hidden;border:1px solid #e2e7ef;border-radius:7px;background:#f1f6fe;color:#33485f;text-align:left}
+.knowledge-product-dialog.access-dialog .library-details-fields .library-cover-summary-button.night{background:#242830;color:#fff}
+.knowledge-product-dialog.access-dialog .library-details-fields .library-cover-summary-button.amber{background:#fff4e4;color:#794c1e}
+.knowledge-product-dialog.access-dialog .library-details-fields .library-cover-summary-button.ice{background:#f0f6f8;color:#304759}
+.library-cover-summary-button>.library-cover-summary-text{position:absolute;inset:0;z-index:1;display:block;padding:22px 17px;background:linear-gradient(180deg,#ffffff70,transparent 80%)}
+.library-cover-summary-text>strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:17px;line-height:1.5;font-weight:600;overflow-wrap:anywhere}
+.library-cover-summary-text>span{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;font-size:11px;line-height:1.9;margin-top:8px;opacity:.8;overflow-wrap:anywhere}
+.library-cover-summary-button>.library-cover-edit{position:absolute;bottom:0;left:0;right:0;z-index:2;display:flex;align-items:center;justify-content:center;gap:5px;height:29px;background:#27374b91;color:#fff;font-size:11px}
+.library-cover-summary-button:hover>.library-cover-edit{background:#27374bb5}
+.library-metadata-overview .library-metadata-text-fields{display:grid;grid-template-rows:auto 1fr;gap:18px}
+.library-metadata-overview .library-name-field,.library-metadata-overview .library-description-field{margin:0}
+.knowledge-product-dialog.access-dialog .library-metadata-overview .library-description-field>textarea{min-height:112px}
+.library-cover-dialog-backdrop{z-index:160}
+.knowledge-product-dialog.access-dialog.library-cover-dialog{width:min(900px,calc(100vw - 24px));padding:22px}
+.library-cover-dialog .library-cover-field>h3{display:none}
+.knowledge-product-dialog.library-cover-dialog>.library-details-fields{margin:0}
+.knowledge-product-dialog.access-dialog.library-cover-dialog>footer>.library-cover-confirm{background:#397bea;border-color:#397bea;color:#fff}
+.library-initial-types.library-initial-cards{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px!important;margin:0 0 22px!important;min-width:0}
+.library-initial-types.library-initial-cards>legend{font-size:13px;font-weight:500;color:#38414d;margin-bottom:11px}
+.library-initial-types.library-initial-cards>label{display:flex;align-items:flex-start;gap:8px;min-width:0;padding:13px 11px;border:1px solid #e0e6ef;border-radius:7px;background:#fff;margin:0;line-height:1.5}
+.library-initial-types.library-initial-cards>label.selected{background:#f2f6ff;border-color:#9cbcf0}
+.library-initial-cards label>input{flex-shrink:0;margin-top:3px!important}
+.library-initial-cards label>span{min-width:0}.library-initial-cards label b{display:block;font-size:12px;font-weight:500;color:#475871}
+.library-initial-cards label small{display:block;font-size:11px;line-height:1.6;color:#8d9bae;margin-top:5px}
+@media(max-width:600px){.knowledge-product-dialog .library-details-fields.library-metadata-overview{grid-template-columns:136px minmax(0,1fr);gap:15px}.library-cover-summary-button>.library-cover-summary-text{padding:18px 12px}.library-cover-summary-text>strong{font-size:15px}.library-initial-types.library-initial-cards{grid-template-columns:1fr}.library-initial-types.library-initial-cards>label{padding:11px 12px}.library-initial-cards label small{margin-top:2px}}
+@media(max-width:420px){.knowledge-product-dialog .library-details-fields.library-metadata-overview{grid-template-columns:108px minmax(0,1fr);gap:12px}.library-cover-summary-button>.library-cover-summary-text{padding:17px 10px}.library-cover-summary-text>strong{font-size:14px}.library-cover-summary-text>span{font-size:10px}.library-details-fields .library-name-control{gap:6px;padding:0 8px}}
+
+.library-metadata-overview .library-metadata-text-fields{grid-template-rows:auto minmax(0,1fr);gap:20px}
+.library-metadata-overview .library-name-control{position:relative;height:52px}
+.knowledge-product-dialog.access-dialog .library-metadata-overview .library-name-control>input{height:50px;padding-right:63px}
+.library-metadata-overview .library-description-field{display:flex;flex-direction:column;min-height:0}
+.library-metadata-overview .library-description-field>label{flex-shrink:0}
+.library-metadata-overview .library-description-control{position:relative;flex:1;min-height:126px;border:1px solid #d9e0e9;border-radius:6px;background:#fff;overflow:hidden}
+.library-metadata-overview .library-description-control:focus-within{border-color:#83a9e5;box-shadow:0 0 0 2px #397bea12}
+.knowledge-product-dialog.access-dialog .library-metadata-overview .library-description-control>textarea{display:block;position:absolute;inset:0;height:100%;width:100%;min-height:0;max-height:none;padding:12px 14px 31px;border:0;border-radius:0;outline:none;box-shadow:none;resize:none;font:400 13px/1.8 system-ui;background:transparent;color:#414d5e}
+.knowledge-product-dialog .library-details-fields .library-field-count{position:absolute;right:12px;bottom:8px;display:block;margin:0;font-size:10px;line-height:1.4;white-space:nowrap;pointer-events:none;color:#9ba6b5;font-variant-numeric:tabular-nums}
+.knowledge-product-dialog .library-name-control>.library-field-count{top:50%;bottom:auto;transform:translateY(-50%)}

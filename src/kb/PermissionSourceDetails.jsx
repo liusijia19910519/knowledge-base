@@ -1,0 +1,4 @@
+import { permissionLabel } from './permissionExplanation.js';
+export default function PermissionSourceDetails({explanation,localRole}){
+  return <details className="permission-source-details"><summary>权限来源</summary><div className="permission-source-content"><dl>{explanation.entries.map((entry,index)=><div key={`${entry.origin}:${entry.name}:${index}`}><dt>{entry.origin}<small>{entry.name}</small></dt><dd>{permissionLabel(entry.role)}</dd></div>)}</dl>{!explanation.entries.length&&<p>暂无普通授权来源。</p>}<div className="permission-effective-result"><span>{explanation.person?'实际生效':'此组织的授权'}</span><strong>{permissionLabel(explanation.effectiveRole)}</strong></div>{localRole&&localRole!==explanation.effectiveRole&&<p>本项为{permissionLabel(localRole)}，其他来源的较高权限仍然生效。</p>}{!explanation.person&&<p>成员如另有个人或其他组织授权，将取最高权限。</p>}<p className="permission-source-draft-note">本窗口的修改保存后生效。</p></div></details>;
+}

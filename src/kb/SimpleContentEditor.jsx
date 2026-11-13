@@ -1,0 +1,15 @@
+import { useState } from 'react';
+import { parseContent } from './contentCreation.js';
+
+export default function SimpleContentEditor({format,value,editing,onChange,activeIndex,onActiveChange}) {
+  const [localActive,setLocalActive]=useState(0),data=parseContent(format,value);
+  const active=activeIndex??localActive,setActive=onActiveChange||setLocalActive;
+  if(format==='sheet'){
+    const rows=data.rows,columns=rows[0].length;
+    const change=rows=>onChange(JSON.stringify({rows}));
+    return <section className="new-sheet-editor" aria-label="表格内容"><div className="new-format-actions"><span>{rows.length} 行 × {columns} 列</span>{editing&&<><button type="button" disabled={rows.length>=100} onClick={()=>change([...rows,Array(columns).fill('')])}>添加行</button><button type="button" disabled={columns>=20} onClick={()=>change(rows.map(r=>[...r,'']))}>添加列</button><button type="button" disabled={rows.length<=1} onClick={()=>change(rows.slice(0,-1))}>删除末行</button><button type="button" disabled={columns<=1} onClick={()=>change(rows.map(r=>r.slice(0,-1)))}>删除末列</button></>}</div><div className="new-grid-scroll"><table><thead><tr><th aria-label="行号"/>{Array.from({length:columns},(_,i)=><th key={i}>{String.fromCharCode(65+i)}</th>)}</tr></thead><tbody>{rows.map((row,r)=><tr key={r}><th>{r+1}</th>{row.map((cell,c)=><td key={c}>{editing?<input aria-label={`单元格 ${String.fromCharCode(65+c)}${r+1}`} value={cell} onChange={e=>change(rows.map((line,i)=>i===r?line.map((x,j)=>j===c?e.target.value:x):line))}/>:<span>{cell||'\u00a0'}</span>}</td>)}</tr>)}</tbody></table></div></section>;
+  }
+  const slides=data.slides,index=Math.min(active,slides.length-1),slide=slides[index];
+  const change=slides=>onChange(JSON.stringify({slides}));
+  return <section className="new-slides-editor" aria-label="幻灯片内容"><div className="new-format-actions"><span>第 {index+1} / {slides.length} 页</span>{editing&&<><button type="button" disabled={slides.length>=50} onClick={()=>{change([...slides,{title:'',body:''}]);setActive(slides.length);}}>添加幻灯片</button><button type="button" disabled={slides.length<=1} onClick={()=>{change(slides.filter((_,i)=>i!==index));setActive(Math.max(0,index-1));}}>删除当前页</button></>}</div><nav className="new-slide-tabs" aria-label="幻灯片页码">{slides.map((s,i)=><button type="button" key={i} className={index===i?'active':''} aria-label={`第 ${i+1} 页`} aria-current={index===i?'page':undefined} onClick={()=>setActive(i)}>{i+1}. {s.title||'未命名页'}</button>)}</nav><div className="new-slide-canvas">{editing?<><input aria-label="幻灯片标题" placeholder="输入这一页的标题" maxLength={100} value={slide.title} onChange={e=>change(slides.map((s,i)=>i===index?{...s,title:e.target.value}:s))}/><textarea aria-label="幻灯片正文" placeholder="输入这一页的内容" value={slide.body} onChange={e=>change(slides.map((s,i)=>i===index?{...s,body:e.target.value}:s))}/></>:<><h2>{slide.title||'未命名页'}</h2><p>{slide.body||'本页暂无内容'}</p></>}</div></section>;
+}

@@ -1,0 +1,9 @@
+{
+  "personal": "http://127.0.0.1:5173/knowledge-base-prototype/#/space/3d704684-3fab-4e60-9cbe-476a0acb45e1?view=personal",
+  "doc": "http://127.0.0.1:5173/knowledge-base-prototype/#/doc/72259247-9fc0-44fe-9d62-7de01c0c7f0e?view=personal&folder=a0b8b8f5-57f7-4a55-a3b3-40a495487e6d",
+  "folderA": "http://127.0.0.1:5173/knowledge-base-prototype/#/space/3d704684-3fab-4e60-9cbe-476a0acb45e1?view=personal&folder=a0b8b8f5-57f7-4a55-a3b3-40a495487e6d",
+  "shared": "http://127.0.0.1:5173/knowledge-base-prototype/#/space/d959106a-0851-4f4a-a2ca-c12b4ae3543f?view=shared",
+  "sharedFolder": "http://127.0.0.1:5173/knowledge-base-prototype/#/space/d959106a-0851-4f4a-a2ca-c12b4ae3543f?view=shared&folder=24f5d136-3f7d-4c22-91f2-b6a80f83948e",
+  "plaza": "http://127.0.0.1:5173/knowledge-base-prototype/#/space/260b8898-8381-435d-8c35-b64dc794b107?view=plaza",
+  "chenTarget": "http://127.0.0.1:5173/knowledge-base-prototype/#/space/ec1a8b5d-4ef5-49d7-a901-0834890a8c9b?view=shared"
+}
