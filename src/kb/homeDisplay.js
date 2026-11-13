@@ -1,6 +1,6 @@
 export const HOME_COLUMNS = [
   {id:'location',label:'位置',width:'minmax(150px,1.1fr)'},
-  {id:'owner',label:'所有者',width:'minmax(110px,.8fr)'},
+  {id:'owner',label:'负责人',width:'minmax(110px,.8fr)'},
   {id:'updatedAt',label:'修改时间',width:'130px',hidden:true},
   {id:'createdAt',label:'创建时间',width:'130px'},
   {id:'visitedAt',label:'最近访问',width:'130px'},

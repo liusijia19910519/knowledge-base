@@ -1,3 +1,4 @@
+import useDiscardGuard from './useDiscardGuard.jsx';
 import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, Shuffle, UploadSimple, PencilSimple, X, Image as ImageIcon } from '@phosphor-icons/react';
@@ -21,7 +22,7 @@ export function LibraryCoverSurface({cover,className='',style={}}){
     return()=>{live=false;if(href)URL.revokeObjectURL(href);};
   },[cover?.kind,cover?.file,cover?.blobId]);
   const preset=coverPreset(cover);
-  return <span aria-hidden="true" className={`library-cover-surface ${className}`} style={{backgroundColor:preset.color,backgroundImage:url?`url("${url}")`:preset.backgroundImage,...style}}/>;
+  return <span aria-hidden="true" className={`library-cover-surface ${cover?.kind==='image'?'is-uploaded-cover':''} ${className}`} style={{backgroundColor:preset.color,backgroundImage:url?`url("${url}")`:preset.backgroundImage,...style}}/>;
 }
 
 function CoverPicker({value,onChange,name,description,disabled=false,onLoadingChange,legacyTone=''}){
@@ -44,7 +45,7 @@ function CoverPicker({value,onChange,name,description,disabled=false,onLoadingCh
     <div className="library-cover-picker" onDragOver={e=>{if(e.dataTransfer.types.includes('Files'))e.preventDefault();}} onDrop={e=>{e.preventDefault();if(!disabled)selectFile(e.dataTransfer.files?.[0]);}}>
       <div className={`library-cover-preview ${value?.key==='original'?legacyTone:''}`} aria-label="知识库封面预览">
         {value?.key!=='original'&&<LibraryCoverSurface cover={value}/>}
-        <div><strong>{name.trim()||'知识库名称'}</strong><p>{description.trim()||'添加简介，让大家了解知识库的用途。'}</p></div>
+        <div><strong title={name.trim()||'知识库名称'}>{name.trim()||'知识库名称'}</strong><p>{description.trim()||'添加简介，让大家了解知识库的用途。'}</p></div>
       </div>
       <div className="library-cover-options">
         <div className="library-cover-toolbar"><div className="library-cover-tabs" role="tablist" aria-label="封面分类">{COVER_CATEGORIES.map(label=><button type="button" role="tab" aria-selected={category===label} key={label} disabled={disabled} onClick={()=>setCategory(label)}>{label}</button>)}</div><div className="library-cover-actions">
@@ -62,19 +63,19 @@ function CoverPicker({value,onChange,name,description,disabled=false,onLoadingCh
 
 function CoverDialog({value,onConfirm,onClose,name,description,legacyTone,onLoadingChange}){
   const [draft,setDraft]=useState(value),[reading,setReading]=useState(false),root=useRef(null);
-  useLocationDialog(root,onClose);
-  return createPortal(<div className="subject-picker-backdrop library-cover-dialog-backdrop" onMouseDown={e=>{e.stopPropagation();if(e.target===e.currentTarget)onClose();}}><section ref={root} className="knowledge-product-dialog access-dialog library-cover-dialog" role="dialog" aria-modal="true" aria-label="设置知识库封面" onKeyDownCapture={e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();onClose();}}}>
-    <header><h2>设置封面</h2><button type="button" className="access-close" aria-label="关闭封面设置" onClick={onClose}><X size={18}/></button></header>
+  const initialCover=useRef({serialized:JSON.stringify(value),file:value?.file});const {requestClose,prompt}=useDiscardGuard(JSON.stringify(draft)!==initialCover.current.serialized||draft?.file!==initialCover.current.file,onClose,reading);useLocationDialog(root,requestClose);
+  return createPortal(<>{prompt}<div className="subject-picker-backdrop library-cover-dialog-backdrop" onMouseDown={e=>{e.stopPropagation();if(e.target===e.currentTarget)requestClose();}}><section ref={root} className="knowledge-product-dialog access-dialog library-cover-dialog" role="dialog" aria-modal="true" aria-label="设置知识库封面" onKeyDownCapture={e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();requestClose();}}}>
+    <header><h2>设置封面</h2><button type="button" className="access-close" aria-label="关闭封面设置" onClick={requestClose}><X size={18}/></button></header>
     <div className="library-details-fields"><CoverPicker value={draft} onChange={setDraft} name={name} description={description} legacyTone={legacyTone} onLoadingChange={value=>{setReading(value);onLoadingChange?.(value);}}/></div>
-    <footer><button type="button" onClick={onClose}>取消</button><button type="button" className="library-cover-confirm" disabled={reading} onClick={()=>{onConfirm(draft);onClose();}}>使用封面</button></footer>
-  </section></div>,document.body);
+    <footer><button type="button" onClick={requestClose}>取消</button><button type="button" className="library-cover-confirm" disabled={reading} onClick={()=>{onConfirm(draft);onClose();}}>使用封面</button></footer>
+  </section></div></>,document.body);
 }
 
 export default function LibraryMetadata({name,setName,description,setDescription,icon,setIcon,cover,setCover,disabled=false,onLoadingChange,onEdit,legacyTone=''}){
   const nameId=useId(),descriptionId=useId(),[coverOpen,setCoverOpen]=useState(false);
   const closeCover=()=>{setCoverOpen(false);onLoadingChange?.(false);};
   return <div className="library-details-fields library-metadata-overview">
-    <div className="library-cover-summary"><span className="library-field-label">封面</span><button type="button" className={`library-cover-summary-button ${cover?.key==='original'?legacyTone:''}`} disabled={disabled} aria-label="设置知识库封面" title="点击更换封面" onClick={()=>setCoverOpen(true)}>{cover?.key!=='original'&&<LibraryCoverSurface cover={cover}/>}<span className="library-cover-summary-text"><strong>{name.trim()||'知识库名称'}</strong><span>{description.trim()||'添加简介，让大家了解知识库的用途。'}</span></span><span className="library-cover-edit"><PencilSimple size={13}/>更换封面</span></button></div>
+    <div className="library-cover-summary"><span className="library-field-label">封面</span><button type="button" className={`library-cover-summary-button ${cover?.key==='original'?legacyTone:''}`} disabled={disabled} aria-label="设置知识库封面" title="点击更换封面" onClick={()=>setCoverOpen(true)}>{cover?.key!=='original'&&<LibraryCoverSurface cover={cover}/>}<span className="library-cover-summary-text"><strong title={name.trim()||'知识库名称'}>{name.trim()||'知识库名称'}</strong><span title={description.trim()||''}>{description.trim()||'添加简介，让大家了解知识库的用途。'}</span></span><span className="library-cover-edit"><PencilSimple size={13}/>更换封面</span></button></div>
     <div className="library-metadata-text-fields">
       <div className="library-name-field"><label htmlFor={nameId}>名称</label><div className="library-name-control"><LibraryIconField compact value={icon} onChange={setIcon} disabled={disabled}/><span className="library-name-divider"/><input id={nameId} data-name-field aria-label="知识库名称" aria-describedby={`${nameId}-count`} maxLength={40} disabled={disabled} value={name} placeholder="请输入知识库名称" onChange={e=>{setName(e.target.value);onEdit?.();}}/><small className="library-field-count" id={`${nameId}-count`}>{name.length} / 40</small></div></div>
       <div className="library-description-field"><label htmlFor={descriptionId}>简介</label><div className="library-description-control"><textarea id={descriptionId} aria-label="知识库简介" aria-describedby={`${descriptionId}-count`} maxLength={300} disabled={disabled} value={description} placeholder="介绍这个知识库的用途" onChange={e=>{setDescription(e.target.value);onEdit?.();}}/><small className="library-field-count" id={`${descriptionId}-count`}>{description.length} / 300</small></div></div>

@@ -1,6 +1,6 @@
 .knowledge-doc-shell .document-workspace.doc-interactive-workspace{grid-template-columns:var(--doc-outline-width,248px) minmax(420px,1fr) var(--document-ai-width,470px)!important}
 .knowledge-doc-shell .document-workspace.doc-interactive-workspace.ai-panel-closed{grid-template-columns:var(--doc-outline-width,248px) minmax(420px,1fr)!important}
-.doc-interactive-workspace>.document-ai-panel{width:auto!important;min-width:0}
+.doc-interactive-workspace>.document-ai-panel{width:auto!important;min-width:0;min-height:0;height:100%}
 .doc-interactive-workspace .document-ai-resize-handle:focus-visible{outline:2px solid #7fa9e7;outline-offset:0}
 .doc-interactive-workspace .document-scroll-area [id]{scroll-margin-top:24px}
 .doc-interactive-workspace .document-report-section h2{font-size:20px;line-height:1.5;margin:0 0 12px}
@@ -26,6 +26,7 @@
 .doc-interactive-composer .capability-trigger-shell,.doc-interactive-composer .doc-knowledge-picker{position:relative}
 .doc-interactive-composer .capability-clear,.doc-interactive-composer .knowledge-clear{position:absolute;top:-3px;right:-4px;height:16px;width:16px;min-width:0;border:1px solid #e6ecf5;border-radius:50%;background:#fff;padding:0;color:#7e91af;display:grid;place-items:center;opacity:0}
 .doc-interactive-composer .capability-trigger-shell:hover>.capability-clear,.doc-interactive-composer .capability-trigger-shell:focus-within>.capability-clear,.doc-interactive-composer .doc-knowledge-picker:hover>.knowledge-clear,.doc-interactive-composer .doc-knowledge-picker:focus-within>.knowledge-clear{opacity:1}
+.knowledge-doc-shell .doc-interactive-composer .capability-trigger-shell:hover>.capability-clear,.knowledge-doc-shell .doc-interactive-composer .capability-trigger-shell:focus-within>.capability-clear,.knowledge-doc-shell .doc-interactive-composer .doc-knowledge-picker:hover>.knowledge-clear,.knowledge-doc-shell .doc-interactive-composer .doc-knowledge-picker:focus-within>.knowledge-clear{opacity:1;pointer-events:auto;z-index:2}
 .doc-interactive-composer .doc-ai-attachments{display:flex;flex-wrap:wrap;gap:6px}
 .doc-interactive-composer .doc-ai-attachment{display:flex;align-items:center;gap:7px;max-width:100%;min-width:0;background:#f7f9fc;border:1px solid #e4eaf2;border-radius:6px;padding:6px 7px;color:#7591b6}
 .doc-ai-attachment>span{min-width:0}.doc-ai-attachment strong{display:block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:500;color:#6a7d96}.doc-ai-attachment small{font-size:9px;color:#9ba6b6}

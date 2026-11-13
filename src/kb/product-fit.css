@@ -118,3 +118,92 @@ body { min-width: 0; overflow: hidden; }
   .knowledge-document-row, .knowledge-detail-row { min-width: 640px; }
   .knowledge-product-dialog .kb-perm-row { grid-template-columns: 1fr; }
 }
+
+/* Library hero: consistent text stack and stable icon/action columns. */
+.knowledge-library-detail .knowledge-detail-hero{display:grid;grid-template-columns:60px minmax(0,1fr) auto;align-items:center;gap:20px;min-height:164px;padding:28px 32px}
+.knowledge-library-detail .knowledge-detail-hero>.knowledge-detail-icon{width:60px;height:60px;align-self:start;margin-top:2px}
+.knowledge-library-detail .knowledge-detail-hero>div{min-width:0}
+.knowledge-library-detail .knowledge-detail-hero h1{font-size:26px;line-height:1.35;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.knowledge-library-detail .knowledge-detail-hero>div>p:not(.access-view-note){margin:8px 0 12px;line-height:1.65;font-size:12px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.knowledge-library-detail .knowledge-detail-hero>div>p:empty{display:none}
+.knowledge-library-detail .knowledge-detail-hero small{font-size:12px;line-height:20px;gap:6px}
+.knowledge-library-detail .knowledge-detail-hero .access-view-note{margin:4px 0 0!important;line-height:18px;font-size:11px}
+.knowledge-library-detail .knowledge-detail-hero>button{align-self:center;justify-self:end;margin-left:4px;white-space:nowrap}
+@media(max-width:640px){.knowledge-library-detail .knowledge-detail-hero{grid-template-columns:48px minmax(0,1fr);padding:22px 20px;gap:14px}.knowledge-library-detail .knowledge-detail-hero>.knowledge-detail-icon{width:48px;height:48px;border-radius:13px}.knowledge-library-detail .knowledge-detail-hero h1{font-size:22px}.knowledge-library-detail .knowledge-detail-hero>button{grid-column:2;justify-self:start;margin-left:0}}
+
+/* Library context drawer: the hero remains its persistent toggle. */
+.knowledge-library-detail .knowledge-detail-hero .library-manager-line{margin-top:0}
+.knowledge-library-detail .knowledge-detail-hero .library-accessible-count{margin-top:4px;color:#8393a9;font-size:11px}
+.knowledge-library-detail .knowledge-detail-hero>button.is-ai-open{background:#e2ebff;color:#2b65cb;box-shadow:inset 0 0 0 1px #b9cff8}
+.knowledge-library-detail .knowledge-detail-hero>button:hover{filter:brightness(.97)}
+.knowledge-library-detail .knowledge-detail-hero>button:focus-visible{outline:2px solid #3478f6;outline-offset:3px}
+.knowledge-product .knowledge-detail-ai-drawer.document-ai-panel{width:100%;min-width:0}
+.knowledge-detail-ai-drawer .context-ai-knowledge{display:flex;align-items:center;gap:8px;min-width:0;padding:10px;border-radius:8px;background:#fff;color:#485b75;font-size:12px}
+.context-ai-knowledge>svg,.context-ai-knowledge>.content-type-icon{flex-shrink:0}
+.context-ai-knowledge>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.knowledge-detail-ai-drawer .document-ai-overview strong{overflow-wrap:anywhere}
+.knowledge-detail-ai-drawer .send:disabled{opacity:.35;cursor:not-allowed}
+@media(max-width:760px){
+  .knowledge-product .knowledge-shell.detail-view{grid-template-columns:minmax(0,1fr)!important}
+  .knowledge-product .knowledge-shell.has-context-ai-drawer{grid-template-columns:64px minmax(320px,1fr) 280px!important;overflow-x:auto!important}
+  .knowledge-product .knowledge-shell.detail-view.has-context-ai-drawer{grid-template-columns:minmax(320px,1fr) 280px!important}
+}
+
+/* Inline directory tree and progressive batch selection. */
+.expandable-file-table .row-main-name{padding-left:min(calc(var(--tree-depth,0)*22px),220px);gap:7px}
+.expandable-file-table .file-tree-caret,.expandable-file-table .file-tree-caret-slot{flex:0 0 19px;width:19px;height:24px}
+.expandable-file-table .file-tree-caret{display:grid;place-items:center;padding:0;border:0;border-radius:4px;background:transparent;color:#8c9bb0;cursor:pointer}
+.expandable-file-table .file-tree-caret:hover{background:#e9f0fa;color:#3478e6}
+.expandable-file-table .file-tree-caret:focus-visible{outline:2px solid #79a6ee;outline-offset:1px}
+.expandable-file-table .file-tree-caret svg{transition:transform .12s ease}
+.expandable-file-table .file-tree-caret svg.expanded{transform:rotate(90deg)}
+.expandable-file-table .file-tree-caret-slot{display:block}
+.expandable-file-table .file-tree-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.expandable-file-table .row-main-name>.content-type-icon{flex-shrink:0}
+.expandable-file-table .directory-tree-empty{padding:10px 12px 10px min(calc(69px + var(--tree-depth,0)*22px),289px);border-bottom:1px solid #edf0f5;color:#9aa7b9;font-size:11px;line-height:20px;background:#fbfcfe}
+.expandable-file-table .row-checkbox{opacity:0;pointer-events:none;transition:opacity .12s ease}
+.expandable-file-table.selection-mode .row-checkbox,.expandable-file-table .knowledge-detail-row:hover>.row-checkbox,.expandable-file-table .knowledge-detail-row:focus-within>.row-checkbox{opacity:1;pointer-events:auto}
+.expandable-file-table .row-checkbox input:focus-visible{outline:2px solid #79a6ee;outline-offset:3px}
+@media(hover:none){.expandable-file-table .row-checkbox{opacity:1;pointer-events:auto}}
+
+/* The same hover menu anatomy on Home, category cards and directory toolbars. */
+.upload-menu{position:relative;min-width:0;display:inline-flex}
+.upload-menu-options{position:absolute;top:calc(100% + 6px);left:0;z-index:45;width:218px;padding:5px;border:1px solid #dce4ef;border-radius:8px;background:#fff;box-shadow:0 8px 24px #253b601f;display:flex;flex-direction:column;gap:2px}
+.upload-menu-options>button{display:flex;align-items:center;justify-content:flex-start;gap:9px;width:100%;height:34px;padding:0 9px;border:0;border-radius:5px;background:transparent;text-align:left;color:#52657d;font-size:12px;cursor:pointer}
+.upload-menu-options>button:hover,.upload-menu-options>button:focus-visible{background:#eef4ff;color:#3478e6}
+.upload-menu-options>small{padding:7px 9px 5px;border-top:1px solid #edf1f6;color:#94a0b1;font-size:10px;line-height:1.5}
+.upload-variant-compact>.upload-menu-options{left:auto;right:0}
+.knowledge-home-actions>.upload-variant-home{display:block}
+.knowledge-home-actions>.upload-variant-home>button{display:flex;align-items:center;gap:12px;width:100%;height:72px;padding:0 16px;border:1px solid #dfe1e4;border-radius:11px;background:#fff;text-align:left;color:#4e7fe4;cursor:pointer}
+.knowledge-home-actions>.upload-variant-home>button>div{display:flex;flex:1;flex-direction:column;gap:4px;min-width:0;color:#333}
+.knowledge-home-actions>.upload-variant-home>button small{font-size:11px;color:#96999f}
+.knowledge-actions>.upload-variant-library>button>.upload-action-icon{background:#fff0e4;color:#a08d80}
+.upload-menu>button:disabled{opacity:.5;cursor:not-allowed}
+.upload-menu>button:hover:not(:disabled){border-color:#bed4f3}
+.new-create-options:before,.upload-menu-options:before{content:'';position:absolute;left:0;right:0;height:9px;bottom:100%}
+.new-create-empty .new-create-options:before{bottom:auto;top:100%}
+
+/* Compact list sort choices; each expanded directory sorts its own children. */
+.directory-sort-menu{position:relative;flex-shrink:0}
+.knowledge-detail-list-toolbar .directory-sort-trigger{display:grid;place-items:center;width:32px;height:32px;padding:0;border:1px solid transparent;background:transparent;color:#7b8b9f;border-radius:6px;cursor:pointer}
+.knowledge-detail-list-toolbar .directory-sort-trigger:hover,.knowledge-detail-list-toolbar .directory-sort-trigger[aria-expanded=true]{background:#eef4ff;color:#3478e6}
+.directory-sort-options{position:absolute;right:0;top:calc(100% + 6px);z-index:46;width:190px;padding:6px;border:1px solid #dce4ef;border-radius:8px;background:#fff;box-shadow:0 8px 24px #253b601f}
+.directory-sort-options:before{content:'';position:absolute;left:0;right:0;bottom:100%;height:9px}
+.knowledge-detail-list-toolbar .directory-sort-options>button{display:flex;align-items:center;justify-content:space-between;width:100%;height:34px;padding:0 10px;border:0;border-radius:5px;background:transparent;font-size:12px;color:#52657d;cursor:pointer}
+.knowledge-detail-list-toolbar .directory-sort-options>button:hover,.knowledge-detail-list-toolbar .directory-sort-options>button:focus-visible{background:#eef4ff;color:#3478e6;outline:none}
+.directory-sort-options>button[aria-checked=true]{background:#f4f7fc}
+.sort-section-label{padding:6px 10px 5px;color:#96a2b3;font-size:10px;line-height:17px}
+.sort-section-label.separated{border-top:1px solid #e9edf3;margin-top:5px;padding-top:10px}
+.directory-sort-trigger:focus-visible{outline:2px solid #79a6ee;outline-offset:2px}
+.knowledge-detail-table.selectable .knowledge-detail-row{grid-template-columns:25px minmax(150px,1fr) 100px 110px 80px 96px}
+.expandable-file-table .file-row-actions,.home-document-row .file-row-actions{opacity:0}
+.expandable-file-table .knowledge-detail-row:hover .file-row-actions,.expandable-file-table .knowledge-detail-row:focus-within .file-row-actions,.home-document-row:hover .file-row-actions,.home-document-row:focus-within .file-row-actions,.file-row-actions.is-open{opacity:1}
+.file-row-actions>button[aria-label$="问AI"]:hover{background:#edf2ff;color:#5c6cda}
+@media(max-width:900px){.knowledge-detail-table.selectable .knowledge-detail-row{grid-template-columns:22px minmax(120px,1fr) 70px 80px 70px 96px;gap:6px}}
+@media(hover:none){.expandable-file-table .file-row-actions,.home-document-row .file-row-actions{opacity:1}}
+
+/* Collapse preserves the mounted conversation, without occupying a grid track. */
+.knowledge-product .knowledge-detail-ai-drawer.document-ai-panel[hidden]{display:none!important}
+.knowledge-product-toast>.notice-location{color:#3478e6;font-weight:500;white-space:nowrap}
+.knowledge-product-toast>span{min-width:0;overflow-wrap:anywhere}
+.knowledge-product-toast>.notice-location:focus-visible{outline:2px solid #79a6ee;outline-offset:3px;border-radius:3px}

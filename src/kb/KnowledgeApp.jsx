@@ -1,3 +1,15 @@
+import KnowledgeNotice from './KnowledgeNotice.jsx';
+import { resultLocation } from './resultLocation.js';
+import { commitCreationDraft, abandonCreationDraft } from './creationDrafts.js';
+import { selectionSummary } from './treeSelection.js';
+import './recycle.css';
+import HandoverDialog from './HandoverDialog.jsx';
+import { handoverReason } from './handover.js';
+import { creatorId, responsibleId } from './ownership.js';
+import { queueReleasedResources, flushResourceCleanup } from './resourceCleanup.js';
+import { stageUploadBatch, visibleUploadTasks } from './uploadTasks.js';
+import GlobalSearch from './GlobalSearch.jsx';
+import { readDocumentDraft, storeDocumentDraft, removeDocumentDraft } from './documentDrafts.js';
 import { uploadPath, validateUploadSelection } from './folderUploads.js';
 import { useEffect, useRef, useState } from "react";
 import {
@@ -25,7 +37,7 @@ import RestoreLocationDialog from './RestoreLocationDialog.jsx';
 import { deleteLibrary, restoreLibrary, permanentlyDeleteLibrary, libraryDeletionSnapshot } from './libraryLifecycle.js';
 import { SCOPE_LABELS, VIEW_LABELS, activeNode, actualNodes, contentRights, effectiveAccess, libraryRights, librariesForView, libraryStats, projectedEntries, spaceAccess, validView, safeFolderTrail, deleteContent, restoreContent, contentTree, libraryType, LIBRARY_TYPES, restoreNeedsLocation } from "./access.js";
 import CreationDialog, { CreateMenu, ContentIcon, launchDocument } from "./CreationFlow.jsx";
-import { UploadDialog, UploadQueue } from "./UploadFlow.jsx";
+import { UploadDialog, UploadQueue, UploadMenu } from "./UploadFlow.jsx";
 import UploadedFilePreview from "./UploadedFilePreview.jsx";
 import DocumentTitle from "./DocumentTitle.jsx";
 import SimpleContentEditor from "./SimpleContentEditor.jsx";
@@ -40,7 +52,7 @@ import { relocationSource } from "./contentOperations.js";
 import { contentView } from "./access.js";
 import { contentLabel, contentText, folderTrail, parseContent, writableLibraries, validateDestination } from "./contentCreation.js";
 import {
-  can, loadState, memberName, nodeRole, resetState, ROLE_OPTIONS, roleLabel, saveState,
+  can, loadState, memberName, nodeRole, normalizeState, seedState, ROLE_OPTIONS, roleLabel, saveState,
   spaceRole, teamRole, visibleNodes, visibleSpaces, STORAGE_KEY,
 } from "./store.js";
 
@@ -52,16 +64,19 @@ const CARD_ICONS = [FolderOpen, Briefcase, Lightbulb, Archive];
 function useStore() {
   const [state, setState] = useState(loadState);
   useEffect(() => {
-    const sync = event => { if (!event || event.key === STORAGE_KEY) setState(loadState()); };
-    sync();
+    const sync = event => { if (!event || event.type==='focus' || event.key === STORAGE_KEY) setState(loadState()); };
+    sync();flushResourceCleanup(loadState).catch(()=>{});
     window.addEventListener("storage", sync);
     window.addEventListener("focus", sync);
     return () => { window.removeEventListener("storage", sync); window.removeEventListener("focus", sync); };
   }, []);
   const update = recipe => {
-    const next = recipe(loadState());
-    saveState(next);
+    const previous=loadState();let next;
+    try{next=saveState(recipe(previous),{expectedRevision:previous.writeRevision||''});}
+    catch(error){if(error.code==='STALE_WRITE'){setState(loadState());window.dispatchEvent(new CustomEvent('kb-write-conflict',{detail:error.message}));}throw error;}
     setState(next);
+    try{queueReleasedResources(previous,next);}catch{}
+    flushResourceCleanup(loadState).catch(()=>{});
     return next;
   };
   return [state, update];
@@ -101,37 +116,55 @@ function mockAnswer(state, userId, pool, question, current) {
 export function KnowledgeApp() {
   const [state, update] = useStore();
   const [location, setLocation] = useState(route);
+  const navigationGuard=useRef(null);
   const [query, setQuery] = useState("");
   const [notice, setNotice] = useState("");
+  const [noticeAction,setNoticeAction]=useState(null),[noticePaused,setNoticePaused]=useState(false);
   const [confirm, setConfirm] = useState(null);
   const [subnavCollapsed, setSubnavCollapsed] = useState(false);
   const [subnavWidth, setSubnavWidth] = useState(228);
   const [detailAiOpen, setDetailAiOpen] = useState(false);
+  const [detailAiTarget,setDetailAiTarget]=useState(null),detailAiReturnFocus=useRef(null);
   const [createContext, setCreateContext] = useState(null);
   const [folderDraft, setFolderDraft] = useState(null);
   const [uploadContext, setUploadContext] = useState(null);
-  const [uploadJobs, setUploadJobs] = useState([]);
+  const uploadJobs=visibleUploadTasks(state,state.viewAs);
   const uploadInput=useRef(null),folderUploadInput=useRef(null),pendingUpload=useRef(null);
   const [relocateContext, setRelocateContext] = useState(null);
+  const [shareAfterMove,setShareAfterMove]=useState(null);
   const [libraryDialog, setLibraryDialog] = useState(false);
   const [accessTarget, setAccessTarget] = useState(null);
+  const [handoverTarget,setHandoverTarget]=useState(null);
   const [actionContext, setActionContext] = useState(null);
   const [menuFor, setMenuFor] = useState("");
-  useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),5000);return()=>clearTimeout(timer);},[notice]);
+  useEffect(()=>{if(!notice||noticePaused)return;const timer=setTimeout(()=>{setNotice('');setNoticeAction(null);},noticeAction?12000:5000);return()=>clearTimeout(timer);},[notice,noticeAction,noticePaused]);
 
   useEffect(() => {
-    const sync = () => setLocation(route());
+    const sync = event => {
+      if(navigationGuard.current&&!navigationGuard.current(window.location.hash)){
+        window.history.replaceState(null,'',event.oldURL);return;
+      }
+      setLocation(route());
+    };
     window.addEventListener("hashchange", sync);
     if (!window.location.hash) go("/home");
     return () => window.removeEventListener("hashchange", sync);
   }, []);
 
-  useEffect(() => { setDetailAiOpen(false); setMenuFor(""); setCreateContext(null); setLibraryDialog(false);setRelocateContext(null); setAccessTarget(null);setActionContext(null); setConfirm(null); setUploadContext(null);pendingUpload.current=null;setFolderDraft(current=>current&&location.path==='space'&&current.spaceId===location.id&&current.parentId===(location.folder||'')&&current.userId===state.viewAs?current:null); }, [location.path, location.id, location.folder, location.view, state.viewAs]);
+  useEffect(() => { setDetailAiOpen(false);setDetailAiTarget(null); setMenuFor(""); setCreateContext(null); setLibraryDialog(false);setRelocateContext(null); setAccessTarget(null);setHandoverTarget(null);setActionContext(null); setConfirm(null); setUploadContext(null);pendingUpload.current=null;setFolderDraft(current=>current&&location.path==='space'&&current.spaceId===location.id&&current.parentId===(location.folder||'')&&current.userId===state.viewAs?current:null); }, [location.path, location.id, location.folder, location.view, state.viewAs]);
 
   const userId = state.viewAs;
   const me = state.members.find((item) => item.id === userId);
   const spaces = visibleSpaces(state, userId);
-  const say = (text) => setNotice(text);
+  const say=(text,target=null)=>{setNotice(text);setNoticeAction(target?{...target,userId}:null);setNoticePaused(false);};
+  const closeNotice=()=>{setNotice('');setNoticeAction(null);setNoticePaused(false);};
+  useEffect(()=>{
+    const showConflict=event=>{setNotice(event.detail);setNoticeAction(null);setNoticePaused(false);};
+    window.addEventListener('kb-write-conflict',showConflict);
+    return()=>window.removeEventListener('kb-write-conflict',showConflict);
+  },[]);
+  const viewNotice=()=>{try{const destination=resultLocation(loadState(),noticeAction,userId);setNoticePaused(false);go(destination);}catch(error){say(error.message);}};
+  useEffect(()=>{setNotice('');setNoticeAction(null);setNoticePaused(false);},[userId]);
   const openDoc = id => {
     try{update(current=>visitContent(current,id,userId));}catch(error){say(error.message);return;}
     const node = state.nodes.find(n => n.id === id), lib = state.spaces.find(s => s.id === node?.spaceId);
@@ -145,16 +178,24 @@ export function KnowledgeApp() {
     const library=entity==='space'?item:state.spaces.find(s=>s.id===item.spaceId);
     if(libraryType(library)==='personal'){
       if(entity==='space'){say('个人知识库不能直接共享，请移动需要协作的文件或文件夹');return;}
-      setConfirm({title:'个人内容仅本人可见',body:'协作前请先移动到共享知识库或知识广场。移动成功后原位置不留副本，内容将继承目标位置权限。',confirmText:'选择移动位置',action:()=>openRelocate(item,'move','personal',true)});return;
+      setConfirm({title:'个人内容仅本人可见',body:'协作前请先移动到共享知识库或知识广场。移动后成为组织资料，个人库不再保留原件，继承目标位置权限，且原件不能移回个人知识库。',confirmText:'移动并继续分享',action:()=>openRelocate(item,'move','personal',true)});return;
     }
     setAccessTarget({id:item.id,entity,mode:'share'});
   };
+  const openHandover=(item,entity='node')=>{const reason=handoverReason(loadState(),item.id,entity,userId);if(reason){say(reason);return;}setHandoverTarget({id:item.id,entity});};
   const openSettings = item => setAccessTarget({id:item.id,entity:'space',mode:'settings'});
   const section = location.path === "plaza" ? "plaza" : location.path === "personal" ? "personal" : location.path === "shared" ? "shared" : "";
   const isLibrary = ["plaza", "shared", "personal"].includes(location.path);
   const isDetail = location.path === "space";
   const space = state.spaces.find((item) => item.id === location.id);
   const folderPath=safeFolderTrail(state,space?.id,userId,libraryType(space),location.folder);
+  useEffect(()=>{
+    if(!detailAiTarget)return;
+    const target=state.nodes.find(node=>node.id===detailAiTarget.id);
+    if(!activeNode(state,target)||!contentRights(state,target,userId).view||(isDetail&&target.spaceId!==space?.id)){
+      setDetailAiOpen(false);setDetailAiTarget(null);
+    }
+  },[state,userId,detailAiTarget,isDetail,space?.id]);
   useEffect(()=>{
     const current=location.path==='doc'?state.nodes.find(n=>n.id===location.id):null,library=location.path==='space'?state.spaces.find(s=>s.id===location.id):state.spaces.find(s=>s.id===current?.spaceId);
     if(!library||!['space','doc'].includes(location.path))return;
@@ -179,18 +220,17 @@ export function KnowledgeApp() {
     setQuery('');setFolderDraft({...position,parentId:position.parentId||'',view,userId,token:crypto.randomUUID()});go(spaceUrl(position.spaceId,view,position.parentId));
   };
   const startCreate = (format, options = {}) => {
-    const context={ format, view: location.path === "space" ? validView(state, space, userId, location.view) : section, ...options, ...(location.path === "home" ? { spaceId: "", parentId: "", lockedSpaceId: "", category: "", view: "" } : {}) };
-    if(location.path!=='space'){setCreateContext(context);return;}
+    const context={ format, view: location.path === "space" ? validView(state, space, userId, location.view) : section, ...options, ...(location.path === "home"&&!options.lockedSpaceId ? { spaceId: "", parentId: "", lockedSpaceId: "", category: "", view: "" } : {}) };
+    if(location.path!=='space'&&!options.lockedSpaceId){setCreateContext(context);return;}
     try{validateDestination(loadState(),context,userId);if(format==='folder')beginFolder(context);else{const result=launchDocument(update,context,userId);created(result.node,{view:context.view});if(!result.opened)setCreateContext({...context,recoveryNode:result.node});}}catch(error){say(error.message);}
   };
-  const enqueueUploads = (position,files) => {
-    try{validateUploadSelection(files);}catch(error){say(error.message);return;}
-    const folderSession={folders:new Map()};
-    setUploadJobs(list=>[...list,...Array.from(files).map(file=>({id:crypto.randomUUID(),file,fields:{...position,lockedSpaceId:position.spaceId,relativePath:uploadPath(file),folderSession},userId,status:'pending',message:'等待上传',control:{cancelled:false}}))]);
+  const enqueueUploads = async (position,files) => {
+    try{await stageUploadBatch(update,position,files,userId);}catch(error){say(error.message);throw error;}
   };
   const startUpload = (options={}) => {
-    if(location.path!=='space'){setUploadContext({category:section});return;}
-    const fields={spaceId:space.id,parentId:options.parentId??folderPath.at(-1)??'',lockedSpaceId:space.id};
+    if(location.path!=='space'&&!options.spaceId){setUploadContext({category:section,kind:options.kind||'file'});return;}
+    const targetSpaceId=options.spaceId||space.id;
+    const fields={spaceId:targetSpaceId,parentId:options.parentId??folderPath.at(-1)??'',lockedSpaceId:targetSpaceId};
     try{validateDestination(loadState(),fields,userId);pendingUpload.current=fields;const chooser=options.kind==='folder'?folderUploadInput.current:uploadInput.current;chooser.value='';chooser.click();}catch(error){say(error.message);}
   };
   const created = (node, destination = {}) => {
@@ -201,14 +241,28 @@ export function KnowledgeApp() {
     try { const current=loadState(),source=relocationSource(current,node.id,mode,userId).node;setRelocateContext({id:source.id,mode,spaceId:source.spaceId,parentId:source.parentId||"",name:source.name,view,sharing}); }
     catch (error) { say(error.message); }
   };
-  const relocationDialog = relocateContext && <RelocateDialog state={state} userId={userId} context={relocateContext} update={update} onClose={() => setRelocateContext(null)} onSaved={(text, node) => { say(text); if (location.path === "doc" && relocateContext.mode === "move") go(`/doc/${node.id}?view=${contentView(state,node,userId,location.view)}${node.parentId ? `&folder=${node.parentId}` : ""}`); }} />;
-  const uploadQueue=<UploadQueue jobs={uploadJobs} setJobs={setUploadJobs} update={update} onOpen={openDoc}/>;
-  const fileAction=(action,node)=>{
+  const relocationDialog = relocateContext && <RelocateDialog state={state} userId={userId} context={relocateContext} update={update} onClose={() => setRelocateContext(null)} onSaved={(text,node)=>{const latest=loadState(),view=contentView(latest,node,userId),library=latest.spaces.find(s=>s.id===node.spaceId);if(relocateContext.sharing){const destination=spaceUrl(node.spaceId,view,node.parentId);if(libraryType(library)==='shared'){setShareAfterMove({id:node.id,route:destination,userId});say('已移动到共享知识库，请继续邀请协作者');}else say('已移至知识广场，公司全员可查看',{entity:'node',id:node.id});go(destination);return;}say(text,{entity:'node',id:node.id});if(location.path==='doc'&&relocateContext.mode==='move')go(`/doc/${node.id}?view=${view}${node.parentId?`&folder=${node.parentId}`:''}`);}} />;
+  useEffect(()=>{
+    if(!shareAfterMove)return;
+    if(shareAfterMove.userId!==userId||window.location.hash!==`#${shareAfterMove.route}`){setShareAfterMove(null);return;}
+    if(location.path!=='space'||spaceUrl(location.id,location.view,location.folder)!==shareAfterMove.route)return;
+    const current=loadState(),target=current.nodes.find(n=>n.id===shareAfterMove.id);
+    setShareAfterMove(null);
+    if(!target||!contentRights(current,target,userId).manage){say('移动已完成，当前无法继续授权，请在目标位置核对权限');return;}
+    setAccessTarget({id:target.id,entity:'node',mode:'share',afterMove:true});
+  },[shareAfterMove,location.path,location.id,location.view,location.folder,userId]);
+  const uploadQueue=<UploadQueue jobs={uploadJobs} userId={userId} update={update} onOpen={openDoc}/>;
+  const fileAction=(action,node,options={})=>{
     try{
       const latest=loadState(),current=latest.nodes.find(n=>n.id===node.id),reason=actionReason(latest,current,userId,action);if(reason)throw Error(reason);
+      if(action==='create-in'){if(current.type!=='folder')throw Error('请选择文件夹');startCreate(options.format,{view:libraryType(latest.spaces.find(s=>s.id===current.spaceId)),lockedSpaceId:current.spaceId,spaceId:current.spaceId,parentId:current.id});return;}
+      if(action==='upload-in'){if(current.type!=='folder')throw Error('请选择文件夹');startUpload({spaceId:current.spaceId,parentId:current.id,kind:options.kind});return;}
+      if(action==='discard-draft'){setConfirm({title:`放弃新建「${current.name}」？`,body:'该草稿尚未首次保存，放弃后将删除草稿及暂存内容。',confirmText:'放弃新建',action:()=>{try{update(value=>{if(value.viewAs!==userId)throw Error('当前用户已变化');return abandonCreationDraft(value,current.id,userId);});removeDocumentDraft(userId,current.id);say('已放弃新建');}catch(error){say(error.message);}}});return;}
       if(action==='open'){openDoc(current.id);return;}
+      if(action==='ai'){detailAiReturnFocus.current=document.activeElement;setDetailAiTarget({id:current.id,spaceId:current.spaceId});setDetailAiOpen(true);return;}
       if(action==='favorite'){update(s=>setFavorite(s,current.id,userId));say(favorites(latest,userId).includes(current.id)?'已取消收藏':'已收藏');return;}
       if(action==='permissions'){openAccess(current);return;}
+      if(action==='handover'){openHandover(current);return;}
       if(action==='copy'||action==='move'){openRelocate(current,action,location.view);return;}
       if(action==='locate'){const view=contentView(latest,current,userId,location.view);go(`${spaceUrl(current.spaceId,view,current.parentId)}&locate=${current.id}`);return;}
       setActionContext({action,id:current.id,ids:[current.id],spaceId:current.spaceId,expected:sourceLocations(latest,[current.id])});
@@ -229,34 +283,38 @@ export function KnowledgeApp() {
     }catch(error){setActionContext(current=>({...current,error:error.message}));}
   };
   const AccessComponent=accessTarget?.mode==='share'?ShareDialog:AccessDialog;
-  const accessDialog=accessTarget&&<AccessComponent state={state} userId={userId} item={(accessTarget.entity==='space'?state.spaces:state.nodes).find(n=>n.id===accessTarget.id)} entity={accessTarget.entity} settings={accessTarget.mode==='settings'} onDelete={requestLibraryDelete} update={update} onClose={()=>setAccessTarget(null)} onSaved={visibility=>{say(accessTarget.mode==='settings'?'知识库设置已保存':accessTarget.mode==='share'?accessSavedText(visibility):'权限已保存');if(accessTarget.entity==='space'&&location.path==='space'){const latest=loadState();if(!librariesForView(latest,userId,location.view).some(s=>s.id===location.id)){const next=['personal','shared','plaza'].find(v=>librariesForView(latest,userId,v).some(s=>s.id===location.id));go(next?spaceUrl(location.id,next):'/home');}}}}/>;
-  const actionDialogs=<>{accessDialog}
+  const accessDialog=accessTarget&&<AccessComponent state={state} userId={userId} item={(accessTarget.entity==='space'?state.spaces:state.nodes).find(n=>n.id===accessTarget.id)} entity={accessTarget.entity} settings={accessTarget.mode==='settings'} afterMove={accessTarget.afterMove} onDelete={requestLibraryDelete} onHandover={openHandover} update={update} onClose={()=>setAccessTarget(null)} onSaved={visibility=>{say(accessTarget.mode==='settings'?'知识库设置已保存':accessTarget.mode==='share'?accessSavedText(visibility):'权限已保存');if(accessTarget.entity==='space'&&location.path==='space'){const latest=loadState();if(!librariesForView(latest,userId,location.view).some(s=>s.id===location.id)){const next=['personal','shared','plaza'].find(v=>librariesForView(latest,userId,v).some(s=>s.id===location.id));go(next?spaceUrl(location.id,next):'/home');}}}}/>;
+  const handoverDialog=handoverTarget&&<HandoverDialog state={state} userId={userId} {...handoverTarget} update={update} onClose={()=>setHandoverTarget(null)} onSaved={result=>{const {id,entity}=handoverTarget;setAccessTarget(null);setHandoverTarget(null);say(`已交接 ${result.changedCount} 项内容的负责人`);const target=result.state[entity==='space'?'spaces':'nodes'].find(row=>row.id===id),rights=entity==='space'?libraryRights(result.state,target,userId):contentRights(result.state,target,userId);if(!rights.view)go('/home');}}/>;
+  const actionDialogs=<>{accessDialog}{handoverDialog}
     {actionContext?.action==='delete-library'&&<ConfirmAction title={`删除知识库「${actionContext.name}」？`} body={`知识库及其中内容将移入回收站，原有单独删除的内容保持删除。删除后可在回收站恢复。未保存的设置不会生效。${actionContext.error?' '+actionContext.error:''}`} confirmText="删除" cancelText="取消" danger onClose={closeAction} onConfirm={confirmLibraryDelete}/>}
 
     {actionContext?.action==='rename'&&actionNode&&<RenameDialog node={actionNode} userId={userId} update={update} onClose={saved=>{closeAction();if(saved)say('名称已保存');}}/>}
-    {actionContext?.action==='info'&&actionNode&&<FileInformation state={state} node={actionNode} onClose={closeAction}/>}
+    {actionContext?.action==='info'&&actionNode&&<FileInformation state={state} node={actionNode} userId={userId} onClose={closeAction}/>}
     {actionContext?.action==='print'&&actionNode&&<PrintDialog state={state} node={actionNode} userId={userId} onClose={closeAction} onNotice={say}/>}
     {actionContext?.action==='download'&&<DownloadDialog state={state} {...actionContext} userId={userId} onClose={closeAction} onSuccess={()=>actionDone('下载文件已生成')}/>}
-    {actionContext?.batch&&['move','copy'].includes(actionContext.action)&&<BatchRelocateDialog state={state} {...actionContext} mode={actionContext.action} view={location.view} userId={userId} update={update} onClose={closeAction} onSuccess={()=>{actionContext.onSuccess?.();say(actionContext.action==='move'?'已移动所选内容':'已创建副本');}}/>}
-    {actionContext?.action==='delete'&&<ConfirmAction title={actionContext.batch?`删除所选 ${actionContext.ids.length} 项内容？`:`删除「${actionNode?.name}」？`} body={`${actionContext.ids.some(id=>state.nodes.find(n=>n.id===id)?.type==='folder')?'文件夹及其内容将移入回收站。':'内容将移入回收站。'}删除后可在回收站恢复。${actionContext.error?' '+actionContext.error:''}`} confirmText="删除" cancelText="取消" danger onClose={closeAction} onConfirm={()=>{try{update(s=>performBatch(s,{...actionContext,action:'delete'},userId).state);actionDone('已移入回收站');if(location.path==='doc')go(spaceUrl(actionNode.spaceId,location.view,actionNode.parentId));}catch(e){setActionContext(current=>({...current,error:e.message}));}}}/>}</>;
+    {actionContext?.batch&&['move','copy'].includes(actionContext.action)&&<BatchRelocateDialog state={state} {...actionContext} mode={actionContext.action} view={location.view} userId={userId} update={update} onClose={closeAction} onSuccess={result=>{actionContext.onSuccess?.();say(actionContext.action==='move'?'已移动所选内容':'已创建副本',{entity:'nodes',ids:result.nodes.map(node=>node.id)});}}/>}
+    {actionContext?.action==='delete'&&<ConfirmAction title={actionContext.batch?`删除所选 ${actionContext.ids.length} 项内容？`:`删除「${actionNode?.name}」？`} body={`${actionContext.batch?selectionSummary(state,actionContext.ids)+'。':''}${actionContext.ids.some(id=>state.nodes.find(n=>n.id===id)?.type==='folder')?'文件夹及其全部子内容将移入回收站。':'内容将移入回收站。'}删除后可在回收站恢复。${actionContext.error?' '+actionContext.error:''}`} confirmText="删除" cancelText="取消" danger onClose={closeAction} onConfirm={()=>{try{update(s=>performBatch(s,{...actionContext,action:'delete'},userId).state);actionDone('已移入回收站');if(location.path==='doc')go(spaceUrl(actionNode.spaceId,location.view,actionNode.parentId));}catch(e){setActionContext(current=>({...current,error:e.message}));}}}/>}</>;
 
   if (location.path === "doc") {
-    return <><DocumentPage state={state} update={update} userId={userId} nodeId={location.id} startEditing={location.editing} origin={location.view} fromFolder={location.folder} say={say} setConfirm={setConfirm} onOpen={openDoc} openShare={openShare} onAction={fileAction} notice={notice} setNotice={setNotice} />{actionDialogs}{relocationDialog}{uploadQueue}{confirm && <ConfirmDialog {...confirm} onClose={() => setConfirm(null)} />}</>;
+    return <><DocumentPage key={`${location.id}:${userId}`} navigationGuard={navigationGuard} state={state} update={update} userId={userId} nodeId={location.id} startEditing={location.editing} origin={location.view} fromFolder={location.folder} say={say} setConfirm={setConfirm} onOpen={openDoc} openShare={openShare} onAction={fileAction} notice={notice} setNotice={setNotice} noticeAction={noticeAction} onNoticeView={viewNotice} onNoticePause={setNoticePaused} onNoticeClose={closeNotice} />{actionDialogs}{relocationDialog}{uploadQueue}{confirm && <ConfirmDialog {...confirm} onClose={() => setConfirm(null)} />}</>;
   }
 
+  const drawerSpace=detailAiTarget?state.spaces.find(item=>item.id===state.nodes.find(node=>node.id===detailAiTarget.id)?.spaceId):space;
+  const drawerVisible=detailAiOpen&&(isDetail||location.path==='home')&&!!drawerSpace;
+  const drawerColumn='clamp(280px, 32vw, 420px)';
   const shellColumns = isDetail
-    ? (detailAiOpen ? "minmax(0,1fr) 420px" : "minmax(0,1fr)")
-    : `${subnavCollapsed ? 58 : subnavWidth}px minmax(0,1fr)`;
+    ? (drawerVisible ? `minmax(0,1fr) ${drawerColumn}` : "minmax(0,1fr)")
+    : `${subnavCollapsed ? 58 : subnavWidth}px minmax(0,1fr)${drawerVisible?` ${drawerColumn}`:''}`;
 
   return <div className="knowledge-product">
-    <section className={`knowledge-shell${subnavCollapsed ? " subnav-collapsed" : ""}${isDetail ? " detail-view" : ""}`} style={{ gridTemplateColumns: shellColumns }}>
+    <section className={`knowledge-shell${subnavCollapsed ? " subnav-collapsed" : ""}${isDetail ? " detail-view" : ""}${drawerVisible?" has-context-ai-drawer":""}`} style={{ gridTemplateColumns: shellColumns }}>
       {!isDetail && <aside className="knowledge-subnav">
         <div className="knowledge-subnav-title">
           <Books size={21} weight="fill" />
           <strong>知识库</strong>
           <button type="button" className="knowledge-subnav-toggle" aria-label={subnavCollapsed ? "展开侧栏" : "收起侧栏"} onClick={() => setSubnavCollapsed((value) => !value)}><SidebarSimple size={19} /></button>
         </div>
-        <label className="knowledge-subnav-search"><MagnifyingGlass size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索" /></label>
+        <GlobalSearch state={state} userId={userId} onOpen={openDoc} onLibrary={(id,view)=>go(spaceUrl(id,view))} onNotice={say}/>
         <nav>
           <button className={location.path === "ask" ? "active" : ""} onClick={() => go("/ask")}><ChatCircleDots size={19} />问AI</button>
           <button className={location.path === "home" ? "active" : ""} onClick={() => { setQuery(""); go("/home"); }}><House size={19} />主页</button>
@@ -274,7 +332,7 @@ export function KnowledgeApp() {
           </select>
           <div className="kb-footer-actions">
             <a className="kb-product-intro" href={publicAsset('product-introduction.html')} target="_blank" rel="noopener noreferrer"><Books size={15}/>产品介绍</a>
-            <button className="kb-reset-example" type="button" onClick={() => setConfirm({ title: "恢复示例数据", body: "这会清掉你在本机保存的演示内容。", action: () => update(() => resetState()) })}>恢复示例</button>
+            <button className="kb-reset-example" type="button" onClick={() => setConfirm({ title: "恢复示例数据", body: "这会清掉你在本机保存的演示内容。", action: () => update(() => normalizeState(seedState())) })}>恢复示例</button>
           </div>
         </div>
         {!subnavCollapsed && <div className="knowledge-subnav-resize-handle" role="separator" aria-label="调整侧栏宽度" onPointerDown={startSubnavResize} />}
@@ -287,18 +345,18 @@ export function KnowledgeApp() {
         {location.path === "recycle" && <RecyclePage state={state} userId={userId} update={update} setConfirm={setConfirm} say={say} />}
         {location.path === "admin" && (me?.admin ? <AdminPage state={state} update={update} /> : <Empty title="没有管理后台入口" body="当前身份不是管理员。换到周宁可以查看演示用的组织、许可和团队默认权限。" />)}
       </div>
-      {isDetail && detailAiOpen && space && <SpaceAiDrawer state={state} userId={userId} space={space} onOpen={openDoc} onClose={() => setDetailAiOpen(false)} />}
+      {(isDetail||location.path==='home')&&drawerSpace&&<SpaceAiDrawer open={drawerVisible} key={`${userId}:${detailAiTarget?.id||drawerSpace.id}`} state={state} userId={userId} space={drawerSpace} targetId={detailAiTarget?.id} onOpen={openDoc} onClose={() => {setDetailAiOpen(false);requestAnimationFrame(()=>{const target=document.querySelector('[aria-controls="knowledge-context-ai-drawer"]')||(detailAiReturnFocus.current?.isConnected?detailAiReturnFocus.current:document.querySelector('.knowledge-home-header input'));if(target?.isConnected)target.focus();});}} />}
     </section>
-    <input ref={uploadInput} type="file" multiple hidden aria-label="库内上传文件" onCancel={()=>{pendingUpload.current=null;}} onChange={e=>{if(pendingUpload.current&&e.target.files.length)enqueueUploads(pendingUpload.current,Array.from(e.target.files));pendingUpload.current=null;e.target.value='';}}/>
+    <input ref={uploadInput} type="file" multiple hidden aria-label="库内上传文件" onCancel={()=>{pendingUpload.current=null;}} onChange={e=>{if(pendingUpload.current&&e.target.files.length)enqueueUploads(pendingUpload.current,Array.from(e.target.files)).catch(()=>{});pendingUpload.current=null;e.target.value='';}}/>
     {createContext && <CreationDialog state={state} userId={userId} context={createContext} update={update} onClose={() => setCreateContext(null)} onCreated={created} onFolderLocation={beginFolder} />}
-    <input ref={folderUploadInput} type="file" webkitdirectory="" directory="" multiple hidden aria-label="库内上传文件夹" onCancel={()=>{pendingUpload.current=null;}} onChange={e=>{if(pendingUpload.current&&e.target.files.length)enqueueUploads(pendingUpload.current,Array.from(e.target.files));pendingUpload.current=null;e.target.value='';}}/>
-    {uploadContext&&<UploadDialog state={state} userId={userId} context={uploadContext} onClose={()=>setUploadContext(null)} onStart={(position,files)=>{enqueueUploads(position,files);if(section){const view=contentView(state,{spaceId:position.spaceId,parentId:position.parentId,inherit:true},userId,position.view);go(spaceUrl(position.spaceId,view,position.parentId));}setQuery('');}}/>}
+    <input ref={folderUploadInput} type="file" webkitdirectory="" directory="" multiple hidden aria-label="库内上传文件夹" onCancel={()=>{pendingUpload.current=null;}} onChange={e=>{if(pendingUpload.current&&e.target.files.length)enqueueUploads(pendingUpload.current,Array.from(e.target.files)).catch(()=>{});pendingUpload.current=null;e.target.value='';}}/>
+    {uploadContext&&<UploadDialog state={state} userId={userId} context={uploadContext} onClose={()=>setUploadContext(null)} onStart={async(position,files)=>{await enqueueUploads(position,files);if(section){const view=contentView(state,{spaceId:position.spaceId,parentId:position.parentId,inherit:true},userId,position.view);go(spaceUrl(position.spaceId,view,position.parentId));}setQuery('');}}/>}
     {uploadQueue}
     {relocationDialog}
     {libraryDialog && <LibraryCreateDialog state={state} userId={userId} view={section || "personal"} chooseInitializer={location.path==='home'} update={update} onClose={() => setLibraryDialog(false)} onCreated={lib => { const view = libraryType(lib); setQuery('');go(spaceUrl(lib.id, view)); say(`已创建知识库「${lib.name}」`); }} />}
     {actionDialogs}
     {confirm && <ConfirmDialog {...confirm} onClose={() => setConfirm(null)} />}
-    {notice && <div className="knowledge-product-toast" role="status">{notice}<button type="button" onClick={() => setNotice("")}>知道了</button></div>}
+    {notice&&<KnowledgeNotice text={notice} onClose={closeNotice} onView={noticeAction?viewNotice:undefined} onPause={setNoticePaused}/>}
   </div>;
 }
 
@@ -311,55 +369,66 @@ function HomePage({ state, userId, query, setQuery, onOpen, update, startUpload,
   const list=homeEntries(state,userId,tab,query);
   const visits=recentVisits(state,userId);
   const columns=homeColumns(state,userId).filter(column=>!column.hidden);
-  const grid={gridTemplateColumns:`minmax(260px,2fr) ${columns.map(column=>column.width).join(' ')} 38px`,minWidth:314+18*(columns.length+1)+columns.reduce((sum,column)=>sum+({location:150,owner:110}[column.id]||130),0)};
+  const grid={gridTemplateColumns:`minmax(260px,2fr) ${columns.map(column=>column.width).join(' ')} 104px`,minWidth:380+18*(columns.length+1)+columns.reduce((sum,column)=>sum+({location:150,owner:110}[column.id]||130),0)};
   const editable = writableLibraries(state, userId)[0];
   return <>
     <header className="knowledge-home-header"><h1>主页</h1><label><MagnifyingGlass size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索文档" /></label></header>
     <div className="knowledge-home-actions">
       <CreateMenu variant="home" disabled={!editable} reason="没有可编辑的知识库，请先创建知识库或获得编辑权限" onChoose={format => startCreate(format)} />
-      <button type="button" disabled={!editable} title={!editable?'没有可编辑的位置':undefined} onClick={()=>startUpload()}><UploadSimple size={22} /><span><strong>上传</strong><small>上传文件或文件夹</small></span><CaretDown size={15} /></button>
-      <button type="button" onClick={onCreateLibrary}><Books size={22}/><span><strong>新建知识库</strong><small>选择知识库类型，开始整理资料</small></span><CaretRight size={15}/></button>
+      <UploadMenu variant="home" disabled={!editable} reason="没有可编辑的位置" onChoose={kind=>startUpload({kind})}/>
+      <button type="button" onClick={onCreateLibrary}><Books size={22}/><span><strong>新建知识库</strong></span><CaretRight size={15}/></button>
     </div>
     <div className="knowledge-home-toolbar"><div role="tablist" aria-label="文档范围">{[["recent", "最近"], ["favorite", "收藏"], ["shared", "与我共享"], ["mine", "我共享的"]].map(([value, label]) => <button className={tab === value ? "active" : ""} role="tab" aria-selected={tab === value} key={value} onClick={() => setTab(value)}>{label}</button>)}</div><HomeDisplaySettings state={state} userId={userId} update={update}/></div>
     <div className="home-document-scroll"><div className="knowledge-document-table home-document-table">
       <div className="knowledge-document-row home-document-row head" style={grid}><span>标题</span>{columns.map(column=><span key={column.id} data-column={column.id}>{column.label}{column.id==='visitedAt'&&tab==='recent'?' ↓':''}</span>)}<span /></div>
       {list.map(node=>{
         const library=state.spaces.find(item=>item.id===node.spaceId),visited=visits.find(r=>r.id===node.id);
-        const values={location:<span title={library?.name}>{library?.name||'—'}</span>,owner:<span><UserCircle size={18} weight="fill"/>{memberName(state,node.ownerId)}</span>,createdAt:node.createdAt?formatTime(node.createdAt):'—',updatedAt:node.updatedAt?formatTime(node.updatedAt):'—',visitedAt:visited?(visited.visitedAt?formatTime(visited.visitedAt):'更早访问'):'—'};
-        return <div role="button" tabIndex={0} className="knowledge-document-row home-document-row" style={grid} key={node.id} onClick={()=>onOpen(node.id)} onKeyDown={e=>{if(e.target===e.currentTarget&&e.key==='Enter')onOpen(node.id);}}><span><ContentIcon node={node}/><span>{node.name}</span><ScopeBadge access={effectiveAccess(state,node)}/></span>{columns.map(column=><span key={column.id} data-column={column.id}>{values[column.id]}</span>)}<FileMenu state={state} node={node} userId={userId} onAction={onAction} showShare onShare={openShare}/></div>;
+        const values={location:<span title={library?.name}>{library?.name||'—'}</span>,owner:<span><UserCircle size={18} weight="fill"/>{memberName(state,responsibleId(node))}</span>,createdAt:node.createdAt?formatTime(node.createdAt):'—',updatedAt:node.updatedAt?formatTime(node.updatedAt):'—',visitedAt:visited?(visited.visitedAt?formatTime(visited.visitedAt):'更早访问'):'—'};
+        return <div role="button" aria-label={`打开 ${node.name}`} tabIndex={0} className="knowledge-document-row home-document-row" style={grid} key={node.id} onClick={()=>onOpen(node.id)} onKeyDown={e=>{if(e.target===e.currentTarget&&e.key==='Enter')onOpen(node.id);}}><span><ContentIcon node={node}/><span title={node.name}>{node.name}</span>{node.creationDraft?<span className="creation-draft-badge">新建草稿</span>:<ScopeBadge access={effectiveAccess(state,node)}/>}</span>{columns.map(column=><span key={column.id} data-column={column.id}>{values[column.id]}</span>)}<FileMenu state={state} node={node} userId={userId} onAction={onAction} showShare onShare={openShare}/></div>;
       })}
     </div></div>
     {!list.length && <Empty title={query.trim()?"没有找到相关内容":tab==="recent"?"还没有访问记录":tab==="favorite"?"还没有收藏":tab==="shared"?"暂无与我共享的内容":"还没有共享内容"} body={query.trim()?"换一个关键词试试。":tab==="favorite"?"在文件或文件夹菜单中点击收藏，便于下次快速打开。":tab==="mine"?"给自己的内容添加协作者后，会显示在这里。":tab==="shared"?"其他人与你定向共享的内容会显示在这里。":"打开知识库中的内容，开始使用。"} />}
   </>;
 }
 
-function SpaceAiDrawer({ state, userId, space, onOpen, onClose }) {
+function SpaceAiDrawer({ state, userId, space, targetId, onOpen, onClose,open=true }) {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [overviewOpen, setOverviewOpen] = useState(true);
+  const [error,setError]=useState('');
+  const scope=current=>{
+    const target=targetId?current.nodes.find(node=>node.id===targetId):null;
+    const library=current.spaces.find(item=>item.id===(target?.spaceId||space.id));
+    const allowed=targetId?activeNode(current,target)&&contentRights(current,target,userId).view:!!library&&!library.deletedAt&&librariesForView(current,userId).some(item=>item.id===library.id);
+    const ids=target?(target.type==='folder'?contentTree(current,target):new Set([target.id])):null;
+    return {target,library,allowed,pool:allowed?current.nodes.filter(node=>activeNode(current,node)&&node.type!=='folder'&&node.spaceId===library.id&&(!ids||ids.has(node.id))&&contentRights(current,node,userId).view).map(node=>({...node,body:contentText(node)})):[]};
+  };
+  const context=scope(state),label=context.allowed?(context.target?.name||context.library?.name):'关联内容不可访问';
+  const kind=context.target?(context.target.type==='folder'?'文件夹':'文件'):'知识库';
+  const validIds=new Set(context.pool.map(node=>node.id));
   const ask = () => {
     const question = message.trim();
     if (!question) return;
-    const pool = visibleNodes(state, userId).filter((node) => node.type === "doc" && node.spaceId === space.id);
-    const answer = mockAnswer(state, userId, pool, question);
-    setMessages((current) => [...current, { question, answer }]);
-    setMessage("");
+    const latest=loadState(),fresh=scope(latest);
+    if(latest.viewAs!==userId||!fresh.allowed){setError('关联内容已删除或权限发生变化，请重新选择可访问的内容。');return;}
+    const answer = mockAnswer(latest, userId, fresh.pool, question, fresh.target?.type==='folder'?null:fresh.target);
+    setMessages(current=>[...current,{question,answer}]);setError('');setMessage("");
   };
-  return <aside className="knowledge-detail-ai-drawer document-ai-panel" aria-label="AI 对话">
-    <header className="document-ai-header"><strong><Sparkle size={18} weight="fill" />问AI</strong><div><button aria-label="关闭 AI 面板" onClick={onClose}><X size={19} /></button></div></header>
+  return <aside id="knowledge-context-ai-drawer" hidden={!open} aria-hidden={!open} className="knowledge-detail-ai-drawer document-ai-panel" aria-label="AI 对话">
+    <header className="document-ai-header"><strong><Sparkle size={18} weight="fill" />问AI</strong><div><button type="button" aria-label="收起 AI 面板" onClick={onClose}><X size={19} /></button></div></header>
     <div className="conversation-scroll document-ai-conversation-scroll"><article className="conversation-body">
-      <section className="document-ai-overview"><button className="document-ai-section-title" type="button" onClick={() => setOverviewOpen((value) => !value)}><span>知识概览<Sparkle size={13} weight="fill" /></span><CaretDown size={16} className={overviewOpen ? "" : "closed"} /></button>{overviewOpen && <><p>当前已关联<strong>{space.name}</strong>。回答只引用当前身份看得到的文档，并标明这是模拟。</p><div className="document-ai-related"><span>相关知识</span><button type="button"><FolderOpen size={16} />{space.name}</button></div></>}</section>
-      {messages.map((item, index) => <div key={index}><div className="question-bubble">{item.question}</div><div className="answer-block"><div className="answer-brand"><span><Robot size={18} /></span><div><strong>知识库助手</strong><small>模拟回答</small></div></div><p>{answerAllowed(state, userId, item.answer) ? item.answer.text : "来源权限已变化，此回答暂不可查看。"}</p><div className="kb-citations">{item.answer.citations.filter(cite => can(nodeRole(state, state.nodes.find(n => n.id === cite.id), userId), "view")).map((cite) => <button key={cite.id} type="button" onClick={() => onOpen(cite.id)}>{cite.name}</button>)}</div></div></div>)}
-      {!messages.length && <div className="document-ai-empty"><Robot size={28} /><strong>针对当前知识库提问</strong><p>试试问「报销需要哪些材料」</p></div>}
+      <section className="document-ai-overview"><button className="document-ai-section-title" type="button" onClick={()=>setOverviewOpen(value=>!value)}><span>知识概览<Sparkle size={13} weight="fill" /></span><CaretDown size={16} className={overviewOpen?'':'closed'} /></button>{overviewOpen&&<><p>当前已关联{kind}<strong>{label}</strong>。回答仅引用该范围内你可查看的文件，以下为模拟回答。</p><div className="document-ai-related"><span>相关知识</span><div className="context-ai-knowledge" title={label}>{context.target?<ContentIcon node={context.target} size={16}/>:<Books size={16}/>}<span>{label}</span></div></div></>}</section>
+      {messages.map((item,index)=>{const allowed=context.allowed&&item.answer.citations.every(cite=>validIds.has(cite.id));return <div key={index}><div className="question-bubble">{item.question}</div><div className="answer-block"><div className="answer-brand"><span><Robot size={18} /></span><div><strong>知识库助手</strong><small>模拟回答</small></div></div><p>{allowed?item.answer.text:'来源权限或关联范围已变化，此回答暂不可查看。'}</p><div className="kb-citations">{allowed&&item.answer.citations.map(cite=><button key={cite.id} type="button" onClick={()=>{const current=loadState(),fresh=scope(current);if(current.viewAs===userId&&fresh.pool.some(node=>node.id===cite.id))onOpen(cite.id);else setError('来源已不可访问，请重新提问。');}}>{cite.name}</button>)}</div></div></div>;})}
+      {!messages.length&&<div className="document-ai-empty"><Robot size={28}/><strong>针对当前{kind}提问</strong><p>{context.allowed?'输入问题，回答将附上可访问的来源。':'关联内容已删除或当前没有查看权限。'}</p></div>}
     </article></div>
     <div className="composer conversation-composer document-ai-system-composer">
-      <textarea value={message} onChange={(event) => setMessage(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); ask(); } }} placeholder="继续追问，回答会带来源" />
-      <div className="composer-bottom"><div className="composer-tools"><span className="kb-sim-note">模拟 · 当前库</span></div><div className="send-tools"><button className="send" aria-label="发送" onClick={ask}><ArrowUp size={22} weight="bold" /></button></div></div>
+      {error&&<p className="access-error" role="alert">{error}</p>}
+      <textarea aria-label="向AI提问" disabled={!context.allowed} value={message} onChange={event=>setMessage(event.target.value)} onKeyDown={event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.nativeEvent.isComposing){event.preventDefault();ask();}}} placeholder="继续追问，回答会带来源" />
+      <div className="composer-bottom"><div className="composer-tools"><span className="kb-sim-note" title={label}>模拟 · 当前{kind}</span></div><div className="send-tools"><button type="button" className="send" aria-label="发送" disabled={!message.trim()||!context.allowed} onClick={ask}><ArrowUp size={22} weight="bold" /></button></div></div>
     </div>
     <p className="ai-content-disclaimer">内容由模拟回答生成，请核实重要信息。</p>
   </aside>;
 }
-
 
 function AskPage({ state, userId, onOpen }) {
   const spaces = visibleSpaces(state, userId);
@@ -420,19 +489,27 @@ function RecyclePage({state,userId,update,setConfirm,say}){
   useEffect(()=>{setRestoring('');setError('');},[userId]);
   const deletedLibraries=state.spaces.filter(space=>space.deletedAt&&libraryRights(state,space,userId,true).manage);
   const deleted=state.nodes.filter(node=>!state.spaces.find(space=>space.id===node.spaceId)?.deletedAt&&node.deletedAt&&contentRights(state,node,userId,true).manage&&!state.nodes.some(p=>p.id===node.parentId&&p.spaceId===node.spaceId&&p.deletedAt&&p.deleteBatch&&p.deleteBatch===node.deleteBatch));
-  const run=recipe=>{try{update(current=>{if(current.viewAs!==userId)throw Error('当前用户已变化，请重新操作');return recipe(current);});setError('');}catch(err){setError(err.message);}};
+  const run=(recipe,result)=>{try{update(current=>{if(current.viewAs!==userId)throw Error('当前用户已变化，请重新操作');return recipe(current);});setError('');if(result)say(result.text,result.target);}catch(err){setError(err.message);}};
   const restore=node=>{
-    if(restoreNeedsLocation(state,node)){setRestoring(node.id);return;}
-    setConfirm({title:'恢复原内容',body:`将恢复到原位置，并按当前知识库规则和权限提供访问，不创建副本。`,action:()=>run(current=>restoreContent(current,node.id,userId))});
+    if(restoreNeedsLocation(state,node,userId)){setRestoring(node.id);return;}
+    setConfirm({title:'恢复原内容',body:`将恢复到原位置，并按当前知识库规则和权限提供访问，不创建副本。`,action:()=>run(current=>restoreContent(current,node.id,userId),{text:'内容已恢复',target:{entity:'node',id:node.id}})});
   };
   const selected=state.nodes.find(n=>n.id===restoring&&n.deletedAt);
-  return <><header className="knowledge-header"><div><h1>回收站</h1><p>可恢复到原位置；原位置不可用时，选择有编辑权限的新位置。</p></div></header>{error&&<p className="access-error" role="alert">{error}</p>}
+  return <><header className="knowledge-header"><div><h1>回收站</h1></div></header>{error&&<p className="access-error" role="alert">{error}</p>}
     {!deleted.length&&!deletedLibraries.length&&<Empty title="回收站是空的" body="删除内容后会出现在这里。"/>}
-    {(!!deleted.length||!!deletedLibraries.length)&&<div className="knowledge-document-table"><div className="knowledge-document-row head"><span>标题 / 恢复信息</span><span>删除时间</span><span>创建者</span><span/><span/></div>{deletedLibraries.map(library=><div className="knowledge-document-row" data-recycled-library={library.id} key={library.id}><span><Books size={19}/><span>{library.name}<small className="access-restore-meta">知识库 · {LIBRARY_TYPES[libraryType(library)]} · 包含本次删除的文件夹和文件</small></span></span><span>{formatTime(library.deletedAt)}</span><span>{memberName(state,library.ownerId)}</span><span><button className="kb-text-button" type="button" onClick={()=>setConfirm({title:'恢复知识库',body:'恢复知识库及本次一起删除的内容。原来单独删除的内容仍保留在回收站，权限按恢复时的组织授权生效。',action:()=>run(current=>restoreLibrary(current,library.id,userId))})}>恢复</button></span><button className="kb-text-button" type="button" onClick={()=>setConfirm({title:'彻底删除知识库',body:'知识库及其中全部内容将永久删除，无法恢复。其他位置的独立副本保留。',action:()=>run(current=>permanentlyDeleteLibrary(current,library.id,userId))})}>删除</button></div>)}{deleted.map(node=>{
-      const access=effectiveAccess(state,node),library=state.spaces.find(s=>s.id===node.spaceId),position=node.originalLocation||[library?.name,...folderTrail(state,node.parentId).map(id=>state.nodes.find(n=>n.id===id)?.name),node.name].filter(Boolean).join(' / '),needsLocation=restoreNeedsLocation(state,node);
-      return <div className="knowledge-document-row" key={node.id}><span><ContentIcon node={node}/><span>{node.name}<small className="access-restore-meta">原位置：{position} · {needsLocation?'需另选恢复位置':`${LIBRARY_TYPES[libraryType(library)]} · 恢复后：${SCOPE_LABELS[access.visibility]}`}</small></span></span><span>{formatTime(node.deletedAt)}</span><span>{memberName(state,node.ownerId)}</span><span><button className="kb-text-button" type="button" onClick={()=>restore(node)}>{needsLocation?'恢复到…':'恢复'}</button></span><button className="kb-text-button" type="button" onClick={()=>setConfirm({title:'彻底删除原内容',body:'永久删除原内容及全部子内容，无法恢复。',action:()=>run(current=>{const target=current.nodes.find(n=>n.id===node.id);if(!target?.deletedAt||!contentRights(current,target,userId,true).manage)throw Error('没有管理权限');const ids=contentTree(current,target);if(current.nodes.some(n=>ids.has(n.id)&&!contentRights(current,n,userId,true).manage))throw Error('存在不能管理的子内容，未执行删除');return {...current,nodes:current.nodes.filter(n=>!ids.has(n.id))};})})}>删除</button></div>;
+    {(!!deleted.length||!!deletedLibraries.length)&&<div className="knowledge-document-table recycle-table"><div className="knowledge-document-row recycle-row head"><span>名称 / 原位置</span><span>删除时间</span><span>历史创建人</span><span className="recycle-actions-heading">操作</span></div>{deletedLibraries.map(library=><div className="knowledge-document-row recycle-row" data-recycled-library={library.id} key={library.id}>
+      <div className="recycle-item-main"><Books size={23} className="recycle-item-icon"/><div className="recycle-item-copy"><div className="recycle-name-line"><strong title={library.name}>{library.name}</strong></div><div className="recycle-location" title={`${LIBRARY_TYPES[libraryType(library)]} / ${library.name}`}>原位置：{LIBRARY_TYPES[libraryType(library)]} / {library.name}</div></div></div>
+      <span className="recycle-time">{formatTime(library.deletedAt)}</span><span className="recycle-creator" title={memberName(state,creatorId(library))}>{memberName(state,creatorId(library))}</span>
+      <div className="recycle-row-actions"><button className="recycle-icon-action" type="button" aria-label="恢复" title="恢复" onClick={()=>setConfirm({title:'恢复知识库',body:'恢复知识库及本次一起删除的内容。原来单独删除的内容仍保留在回收站，权限按恢复时的组织授权生效。',action:()=>run(current=>restoreLibrary(current,library.id,userId),{text:'知识库已恢复',target:{entity:'space',id:library.id}})})}><ArrowCounterClockwise size={17}/></button><button className="recycle-icon-action recycle-delete" type="button" aria-label="删除" title="删除" onClick={()=>setConfirm({title:'彻底删除知识库',body:'知识库及其中全部内容将永久删除，无法恢复。其他位置的独立副本保留。',action:()=>run(current=>permanentlyDeleteLibrary(current,library.id,userId))})}><Trash size={17}/></button></div>
+    </div>)}{deleted.map(node=>{
+      const library=state.spaces.find(s=>s.id===node.spaceId),position=node.originalLocation||[library?.name,...folderTrail(state,node.parentId).map(id=>state.nodes.find(n=>n.id===id)?.name),node.name].filter(Boolean).join(' / ');
+      return <div className="knowledge-document-row recycle-row" key={node.id}>
+        <div className="recycle-item-main"><ContentIcon node={node}/><div className="recycle-item-copy"><div className="recycle-name-line"><strong title={node.name}>{node.name}</strong></div><div className="recycle-location" title={`原位置：${position}`}>原位置：{position}</div></div></div>
+        <span className="recycle-time">{formatTime(node.deletedAt)}</span><span className="recycle-creator" title={memberName(state,creatorId(node))}>{memberName(state,creatorId(node))}</span>
+        <div className="recycle-row-actions"><button className="recycle-icon-action" type="button" aria-label="恢复" title="恢复" onClick={()=>restore(node)}><ArrowCounterClockwise size={17}/></button><button className="recycle-icon-action recycle-delete" type="button" aria-label="删除" title="删除" onClick={()=>setConfirm({title:'彻底删除原内容',body:'永久删除原内容及全部子内容，无法恢复。',action:()=>run(current=>{const target=current.nodes.find(n=>n.id===node.id);if(!target?.deletedAt||!contentRights(current,target,userId,true).manage)throw Error('没有管理权限');const ids=contentTree(current,target);if(current.nodes.some(n=>ids.has(n.id)&&!contentRights(current,n,userId,true).manage))throw Error('存在不能管理的子内容，未执行删除');return {...current,nodes:current.nodes.filter(n=>!ids.has(n.id))};})})}><Trash size={17}/></button></div>
+      </div>;
     })}</div>}
-    {selected&&<RestoreLocationDialog state={state} node={selected} userId={userId} update={update} onClose={()=>setRestoring('')} onSaved={()=>say('内容已恢复到所选位置')}/>}
+    {selected&&<RestoreLocationDialog state={state} node={selected} userId={userId} update={update} onClose={()=>setRestoring('')} onSaved={restored=>say('内容已恢复到所选位置',{entity:'node',id:restored.id})}/>}
   </>;
 }
 
@@ -469,15 +546,19 @@ function AdminPage({ state, update }) {
   </>;
 }
 
-function DocumentPage({ state, update, userId, nodeId, startEditing = false, origin = "", fromFolder = "", say, setConfirm, onOpen, openShare, onAction, notice, setNotice }) {
+function DocumentPage({ navigationGuard, state, update, userId, nodeId, startEditing = false, origin = "", fromFolder = "", say, setConfirm, onOpen, openShare, onAction, notice, setNotice,noticeAction,onNoticeView,onNoticePause,onNoticeClose }) {
   const node = state.nodes.find((item) => item.id === nodeId);
   const role = nodeRole(state, node, userId);
   const space = state.spaces.find((item) => item.id === node?.spaceId);
-  const [draft, setDraft] = useState(node?.body || "");
-  const [editing, setEditing] = useState(startEditing && node?.format!=='file' && role.edit);
+  const [draft, setDraft] = useState(()=>readDocumentDraft(userId,nodeId)?.body??node?.creationDraftBody??node?.body??"");
+  const [recoveredDraft,setRecoveredDraft]=useState(!!readDocumentDraft(userId,nodeId)||!!node?.creationDraftBody);
+  const draftLoadedFor=useRef(null);
+  const storedCreationBody=useRef(node?.creationDraftBody??node?.body??'');
+  const isNewDraft=!!node?.creationDraft;
+  const [editing, setEditing] = useState((startEditing||!!readDocumentDraft(userId,nodeId)||!!node?.creationDraft) && node?.format!=='file' && role.edit);
   const [saveError, setSaveError] = useState("");
   const [leave, setLeave] = useState(null);
-  const baseBody = useRef(node?.body || "");
+  const baseBody = useRef(readDocumentDraft(userId,nodeId)?.baseBody??node?.body??"");
   const [aiOpen, setAiOpen] = useState(true);
   const [question, setQuestion] = useState("");
   const [knowledge,setKnowledge]=useState({mode:'doc',items:[]});
@@ -492,9 +573,22 @@ function DocumentPage({ state, update, userId, nodeId, startEditing = false, ori
     return()=>{window.removeEventListener('focus',record);document.removeEventListener('visibilitychange',record);};
   },[nodeId,userId]);
   useEffect(() => { const previous = document.title; document.title = node && role.view ? `${node.name} · ${contentLabel(node)}` : "文档不可用"; return () => { document.title = previous; }; }, [node?.id, node?.name, node?.format, role.view]);
-  useEffect(() => { setDraft(node?.body || ""); baseBody.current = node?.body || ""; setEditing(startEditing && node?.format!=='file' && role.edit); setMessages([]); setSaveError(""); }, [nodeId,userId]);
+  useEffect(() => { const key=`${userId}:${nodeId}`;if(draftLoadedFor.current===key)return;draftLoadedFor.current=key;const cached=readDocumentDraft(userId,nodeId);setDraft(cached?.body??node?.creationDraftBody??node?.body??'');storedCreationBody.current=node?.creationDraftBody??node?.body??'';baseBody.current=cached?.baseBody??node?.body??'';setEditing((!!cached||startEditing||!!node?.creationDraft)&&node?.format!=='file'&&role.edit);setRecoveredDraft(!!cached||!!node?.creationDraftBody);setMessages([]);setSaveError(''); }, [nodeId,userId]);
+  useEffect(()=>{
+    if(editing&&(draft!==baseBody.current||isNewDraft)){try{storeDocumentDraft(userId,nodeId,draft,baseBody.current);}catch{setSaveError('草稿暂存失败，请尽快保存；离开页面可能丢失修改。');}}
+  },[draft,editing,nodeId,userId]);
+  useEffect(()=>{
+    if(!editing||!isNewDraft||draft===storedCreationBody.current)return;
+    try{update(current=>{const target=current.nodes.find(item=>item.id===nodeId);if(current.viewAs!==userId||!target?.creationDraft||target.draftOwnerId!==userId)throw Error('草稿状态已变化，请核对后保存');if((target.creationDraftBody??target.body??'')!==storedCreationBody.current)throw Error('草稿已在其他标签页变化，本次输入仍保留在当前标签页');return {...current,nodes:current.nodes.map(item=>item.id===nodeId?{...item,creationDraftBody:draft,draftUpdatedAt:new Date().toISOString()}:item)};});storedCreationBody.current=draft;}catch(error){setSaveError(error.message);}
+  },[draft,editing,isNewDraft,nodeId,userId]);
+
+  useEffect(()=>{
+    const currentHash=window.location.hash;
+    const guard=target=>{if(!role.view||!editing||!isNewDraft&&draft===baseBody.current||target===currentHash)return true;setLeave({target});return false;};
+    navigationGuard.current=guard;return()=>{if(navigationGuard.current===guard)navigationGuard.current=null;};
+  },[editing,draft,nodeId,userId,role.view,isNewDraft]);
   useEffect(() => { if (!editing) { setDraft(node?.body || ""); baseBody.current = node?.body || ""; } }, [node?.body, editing]);
-  useEffect(() => { const guard = event => { if (editing && draft !== baseBody.current) { event.preventDefault(); event.returnValue = ""; } }; window.addEventListener("beforeunload", guard); return () => window.removeEventListener("beforeunload", guard); }, [editing, draft]);
+  useEffect(() => { const guard = event => { if (editing && (isNewDraft||draft !== baseBody.current)) { event.preventDefault(); event.returnValue = ""; } }; window.addEventListener("beforeunload", guard); return () => window.removeEventListener("beforeunload", guard); }, [editing, draft,isNewDraft]);
   useEffect(()=>{setKnowledge({mode:'doc',items:[]});setDocumentSkills([]);setDocumentExpert('');setDocumentAttachments([]);setSelectedQuote(null);setSelectionToolbar(null);setOverviewOpen(true);setOutlineActive('doc-body');setActiveSlide(0);setQuestion('');setMessages([]);},[nodeId,userId]);
   useEffect(()=>{
     setKnowledge(current=>{if(current.mode!=='selection')return current;const valid=availableKnowledgeSelection(state,userId,current.items);return valid.length===current.items.length?current:{mode:'selection',items:valid};});
@@ -511,13 +605,17 @@ function DocumentPage({ state, update, userId, nodeId, startEditing = false, ori
         const latest = current.nodes.find(item => item.id === node.id);
         if (current.viewAs!==userId || !latest || latest.deletedAt || !can(nodeRole(current, latest, userId), "edit")) throw Error("当前文档已不可编辑，请保留本次内容并核对权限。");
         if ((latest.body || "") !== baseBody.current) throw Error("其他标签页已更新正文，本次内容尚未覆盖。请先保留修改，再重新打开核对。");
-        return { ...current, nodes: current.nodes.map(item => item.id === node.id ? { ...item, body: draft, updatedAt: new Date().toISOString() } : item) };
+        if(latest.creationDraft&&(latest.creationDraftBody??latest.body??'')!==storedCreationBody.current)throw Error('草稿已在其他标签页变化，请先核对，未覆盖原草稿');
+        const committed=commitCreationDraft(current,latest,userId);
+        return {...current,nodes:current.nodes.map(item=>item.id===node.id?{...committed,body:draft,updatedAt:new Date().toISOString()}:item)};
       });
-      baseBody.current = draft; setEditing(false); setSaveError(""); clearEditRoute(); say("已保存"); return true;
+      removeDocumentDraft(userId,nodeId);setRecoveredDraft(false);baseBody.current = draft; setEditing(false); setSaveError(""); clearEditRoute(); say("已保存"); return true;
     } catch (error) { setSaveError(error.message || "保存失败，请重试"); return false; }
   };
-  const discard = () => { setDraft(node.body || ""); baseBody.current = node.body || ""; setEditing(false); setSaveError(""); clearEditRoute(); };
+  const discard = () => { removeDocumentDraft(userId,nodeId);setRecoveredDraft(false);setDraft(node.body || ""); baseBody.current = node.body || ""; setEditing(false); setSaveError(""); clearEditRoute(); };
+  const abandonNew=()=>{try{update(current=>{if(current.viewAs!==userId)throw Error('当前用户已变化');return abandonCreationDraft(current,nodeId,userId);});removeDocumentDraft(userId,nodeId);navigationGuard.current=null;const target=leave?.target;setLeave(null);if(target)window.location.hash=target;else go(backUrl);return true;}catch(error){setSaveError(error.message);return false;}};
   const startEdit = () => { const latest=loadState(),current=latest.nodes.find(n=>n.id===node.id),reason=actionReason(latest,current,userId,"edit");if(reason){say(reason);return;}setDraft(current.body || ""); baseBody.current = current.body || ""; setEditing(true); setSaveError(""); };
+  const continueNavigation=()=>{const target=leave==='back'?`#${backUrl}`:leave?.target;navigationGuard.current=null;setLeave(null);if(target)window.location.hash=target;};
   const chooseDocumentSkill=name=>setDocumentSkills(current=>current.includes(name)?current:[...current,name]);
   const captureSelection=event=>{
     if(!role.view)return;
@@ -552,21 +650,22 @@ function DocumentPage({ state, update, userId, nodeId, startEditing = false, ori
   const outline=documentOutline(node,editing?draft:node.body||'').filter(item=>!editing||!item.id.startsWith('doc-section-')),sections=documentSections(node,editing?draft:node.body||'');
   const jumpTo=item=>{if(item.slide!==undefined)setActiveSlide(item.slide);setOutlineActive(item.key||item.id);requestAnimationFrame(()=>scrollDocumentSection(bodyElement.current?.closest('.document-scroll-area'),bodyElement.current?.querySelector(`[id="${item.id==='doc-body'&&!editing&&!['sheet','slides','file'].includes(node.format)&&paragraphs.length<=1?'doc-summary':item.id}"]`)));};
   return <div className="knowledge-doc-shell">
-    <a className="knowledge-doc-back" onClick={event => { if (editing && draft !== baseBody.current) { event.preventDefault(); setLeave("back"); } }} href={`#${backUrl}`}>返回 {space?.name || "知识库"}</a>
+    <a className="knowledge-doc-back" title={space?.name||'知识库'} onClick={event => { if (editing && (isNewDraft||draft !== baseBody.current)) { event.preventDefault(); setLeave("back"); } }} href={`#${backUrl}`}>返回 {space?.name || "知识库"}</a>
     <main className="standalone-document-page">
       <header className="document-window-bar">
         <div className="document-window-title"><ContentIcon node={node} size={20} /><DocumentTitle key={node.id} state={state} node={node} userId={userId} update={update} editable={role.edit}/><StarFour size={18} /></div>
         <div className="document-window-actions">
-          <span className="new-saved-status" role="status">{editing ? draft !== baseBody.current ? "有未保存修改" : "编辑中" : "已保存"}</span><span>{formatTime(node.updatedAt)}</span>
+          <span className="new-saved-status" role="status">{isNewDraft?"新建草稿 · 首次保存后生效":editing ? draft !== baseBody.current ? "有未保存修改" : "编辑中" : "已保存"}</span><span>{formatTime(node.updatedAt)}</span>
           {!editable && <em className="kb-readonly">{node.format==='file'?'文件预览':`只读 · ${roleLabel(role)}`}</em>}
           <ScopeBadge access={effectiveAccess(state, node)} />
-          {editing && <><button type="button" onClick={() => draft !== baseBody.current ? setLeave("cancel") : discard()}>取消编辑</button><button type="button" onClick={save}>保存</button></>}
+          {editing && <><button type="button" onClick={() => isNewDraft||draft !== baseBody.current ? setLeave("cancel") : discard()}>{isNewDraft?'放弃新建':'取消编辑'}</button><button type="button" onClick={save}>保存</button></>}
           <button type="button" disabled={!role.manage||editing} title={editing?'请先保存或取消编辑':!role.manage?'需要管理权限':undefined} onClick={() => openShare(node)}><ShareNetwork size={18} />分享</button>
           <button type="button" aria-label="问 AI" onClick={() => setAiOpen(v=>!v)}><Sparkle size={18} />AI</button>
-          <FileMenu state={state} node={node} userId={userId} context="document" editing={editing} onAction={(action,item)=>action==='edit'?startEdit():onAction(action,item)}/>
+          <FileMenu state={state} node={node} userId={userId} context="document" editing={editing} onAction={(action,item)=>{if(action==='edit')startEdit();else if(action==='ai'){setKnowledge({mode:'doc',items:[]});setAiOpen(true);}else onAction(action,item);}}/>
           <img className="avatar avatar-small" src={publicAsset("/user-avatar.png")} alt={memberName(state, node.ownerId)} />
         </div>
       </header>
+      {recoveredDraft&&editing&&<p className="draft-recovered-note" role="status">已恢复本标签页未保存的草稿，请核对后保存。</p>}
       {saveError && <p className="new-document-error" role="alert">{saveError}</p>}
       <div className={`document-format-toolbar ${toolbarCollapsed&&node.format!=='file' ? "collapsed" : ""}`} role="toolbar" aria-label="文档编辑工具栏">
         <div className="document-toolbar-controls">
@@ -592,7 +691,7 @@ function DocumentPage({ state, update, userId, nodeId, startEditing = false, ori
           {!aiOpen && <button className="document-ai-open-button" type="button" aria-label="打开 AI 面板" onClick={() => setAiOpen(true)}><Sparkle size={22} weight="fill" /></button>}
           <article ref={bodyElement} className="document-sheet" onMouseUp={captureSelection}>
             <h1>{node.name}</h1>
-            <div id="doc-permissions" className="document-meta"><UserCircle size={18} />{memberName(state, node.ownerId)} · {node.ownerId === userId ? "所有者" : roleLabel(role)}<span /><Clock size={18} />{formatTime(node.updatedAt)}{node.permissionMode==='layered'?" · 协作者权限":node.inherit !== false ? " · 继承上级范围" : " · 独立范围"}</div>
+            <div id="doc-permissions" className="document-meta"><UserCircle size={18} />{memberName(state, responsibleId(node))} · {responsibleId(node) === userId ? "负责人" : roleLabel(role)}<span /><Clock size={18} />{formatTime(node.updatedAt)}{node.permissionMode==='layered'?" · 协作者权限":node.inherit !== false ? " · 继承上级范围" : " · 独立范围"}</div>
             {node.format==='file'?<div id="doc-body"><UploadedFilePreview key={node.id} node={node} canDownload={role.download}/></div>:['sheet','slides'].includes(node.format)?<div id="doc-body"><SimpleContentEditor key={node.id} format={node.format} value={editing?draft:node.body} editing={editing} onChange={setDraft} activeIndex={activeSlide} onActiveChange={setActiveSlide}/></div>:<><section className="document-summary" id="doc-summary"><h2>{node.faq?'标准问答':'文档摘要'}</h2><p>{paragraphs[0]||'这篇文档还没有正文。'}</p></section><div id="doc-body">{editing?<textarea className="kb-body" aria-label="文档正文" value={draft} onChange={event=>setDraft(event.target.value)} placeholder="开始撰写正文…"/>:sections.map(section=><section className="document-report-section" id={section.id} key={section.id}>{section.heading?<h2>{section.heading}</h2>:<p>{section.text}</p>}</section>)}</div></>}
 
           </article>
@@ -619,9 +718,14 @@ function DocumentPage({ state, update, userId, nodeId, startEditing = false, ori
       </footer>
     </main>
     {selectionToolbar&&selectedQuote&&<DocumentSelectionToolbar position={selectionToolbar} canCopy={role.download} onCopy={copySelection} onRewrite={()=>{chooseDocumentSkill('帮我写作');setQuestion(current=>current||'请润色这段内容，保持原意。');setAiOpen(true);}} onClose={()=>setSelectionToolbar(null)}/>}
-    {leave && <div className="knowledge-product-dialog-backdrop"><section className="knowledge-product-dialog" role="dialog" aria-modal="true" aria-label="未保存的修改"><h2>有未保存的修改</h2><p>保存后继续，或放弃这次修改。</p><div className="kb-dialog-actions"><button onClick={() => setLeave(null)}>继续编辑</button><button onClick={() => { const back = leave === "back"; discard(); setLeave(null); if (back) go(backUrl); }}>放弃修改</button><button onClick={() => { if (save()) { const back = leave === "back"; setLeave(null); if (back) go(backUrl); } }}>保存并继续</button></div></section></div>}
-    {notice && <div className="knowledge-product-toast" role="status">{notice}<button type="button" onClick={() => setNotice("")}>知道了</button></div>}
+    {leave&&<DocumentLeaveDialog isNewDraft={isNewDraft} error={saveError} onClose={()=>setLeave(null)} onDiscard={()=>{if(isNewDraft)abandonNew();else{discard();continueNavigation();}}} onSave={()=>{if(save())continueNavigation();}}/>}
+    {notice&&<KnowledgeNotice text={notice} onClose={onNoticeClose} onView={noticeAction?onNoticeView:undefined} onPause={onNoticePause}/>} 
   </div>;
+}
+
+function DocumentLeaveDialog({isNewDraft,error,onClose,onDiscard,onSave}){
+  const root=useRef(null);useLocationDialog(root,onClose);
+  return <div className="knowledge-product-dialog-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget)onClose();}}><section ref={root} className="knowledge-product-dialog" role="dialog" aria-modal="true" aria-label="未保存的修改"><h2>{isNewDraft?'新建内容尚未保存':'有未保存的修改'}</h2><p>{isNewDraft?'草稿已暂存。首次保存后才按目标目录权限生效；放弃新建将删除此草稿。':'保存后继续，或放弃这次修改。'}</p>{error&&<p role="alert">{error}</p>}<div className="kb-dialog-actions"><button type="button" onClick={onClose}>继续编辑</button><button type="button" onClick={onDiscard}>{isNewDraft?'放弃新建':'放弃修改'}</button><button type="button" onClick={onSave}>保存并继续</button></div></section></div>;
 }
 
 function ConfirmDialog({ title, body, action, onClose, confirmText }) {

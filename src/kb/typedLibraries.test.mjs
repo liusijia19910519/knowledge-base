@@ -50,7 +50,7 @@ test('跨库根目录移动保留原 ID、创建人与正文，原个人位置�
   assert.equal(r.node.spaceId,'space-handbook');assert.equal(r.state.nodes.filter(n=>n.id===before.id).length,1);assert.equal(s.nodes.find(n=>n.id===before.id).spaceId,'space-personal');
 });
 test('别人创建的文件和混合创建人文件夹禁止移入个人，但可独立复制',()=>{
-  const s=fresh();for(const id of ['doc-guide','folder-guide'])assert.throws(()=>relocateContent(s,{id,mode:'move',spaceId:'space-personal',parentId:''},s.meId),/非本人创建/);
+  const s=fresh();for(const id of ['doc-guide','folder-guide'])assert.throws(()=>relocateContent(s,{id,mode:'move',spaceId:'space-personal',parentId:''},s.meId),/组织原件/);
   const r=relocateContent(s,{id:'folder-guide',mode:'copy',spaceId:'space-personal',parentId:''},s.meId),copies=r.state.nodes.filter(n=>!s.nodes.some(old=>old.id===n.id));
   assert.equal(copies.length,2);assert.ok(copies.every(n=>n.ownerId===s.meId&&n.spaceId==='space-personal'));assert.equal(contentRights(r.state,r.node,'chen-ke').view,false);
   assert.equal(node(r.state,'doc-guide').ownerId,'chen-ke');assert.equal(node(r.state,'doc-guide').spaceId,'space-handbook');
@@ -69,7 +69,7 @@ test('移动清除普通授权及排除；原祖先保护结束、目标祖先�
 });
 test('批量跨库整体校验，不因同为根目录而判定原地，也不部分移动',()=>{
   const s=fresh(),before=structuredClone(s),ids=['doc-faq','doc-guide'];
-  assert.throws(()=>performBatch(s,{ids,sourceSpaceId:'space-handbook',targetSpaceId:'space-personal',action:'move',parentId:'',expected:sourceLocations(s,ids)},s.meId),/非本人创建/);
+  assert.throws(()=>performBatch(s,{ids,sourceSpaceId:'space-handbook',targetSpaceId:'space-personal',action:'move',parentId:'',expected:sourceLocations(s,ids)},s.meId),/组织原件/);
   assert.deepEqual(s,before);
   const r=performBatch(s,{ids:['doc-note'],sourceSpaceId:'space-personal',targetSpaceId:'space-handbook',action:'move',parentId:'',expected:sourceLocations(s,['doc-note'])},s.meId);
   assert.equal(node(r.state,'doc-note').spaceId,'space-handbook');

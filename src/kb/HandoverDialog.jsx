@@ -1,0 +1,18 @@
+import { useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { X, UserCircle, CaretRight } from '@phosphor-icons/react';
+import { useLocationDialog } from './LocationPicker.jsx';
+import { SubjectPicker } from './GrantFields.jsx';
+import { handoverScope, handoverSnapshot, handoverReason, transferResponsibility, handoverAccessSummary } from './handover.js';
+import { creatorId, responsibleId } from './ownership.js';
+import { memberName } from './store.js';
+import './handover.css';
+export default function HandoverDialog({state,userId,id,entity='node',update,onClose,onSaved}){
+  const {item,children,eligible}=handoverScope(state,id,entity),[newId,setNewId]=useState(''),[includeChildren,setIncludeChildren]=useState(true),[picker,setPicker]=useState(false),[error,setError]=useState(''),root=useRef(null),expected=useRef(handoverSnapshot(state,id,entity));
+  useLocationDialog(root,onClose);
+  const blocked=handoverReason(state,id,entity,userId);let preview,previewError='';
+  if(newId&&!blocked){try{preview=transferResponsibility(state,{id,entity,newResponsibleId:newId,includeChildren,expected:expected.current},userId);}catch(err){previewError=err.message;}}
+  const previous=responsibleId(item),oldAccess=preview&&handoverAccessSummary(preview.state,id,entity,previous);
+  const submit=e=>{e.preventDefault();try{let result;update(current=>{result=transferResponsibility(current,{id,entity,newResponsibleId:newId,includeChildren,expected:expected.current},userId);return result.state;});onSaved(result);}catch(err){setError(err.message);}};
+  return createPortal(<div className="action-backdrop handover-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}><form ref={root} className="action-dialog handover-dialog" role="dialog" aria-modal="true" aria-label="交接负责人" onSubmit={submit}><header><div><h2>交接负责人</h2><p>{item?.name||'内容不可用'}</p></div><button type="button" aria-label="关闭负责人交接" onClick={onClose}><X size={18}/></button></header><dl className="handover-identity"><div><dt>历史创建人</dt><dd>{memberName(state,creatorId(item))}</dd></div><div><dt>当前负责人</dt><dd>{memberName(state,previous)}</dd></div></dl><button type="button" className="handover-person" disabled={!!blocked} onClick={()=>setPicker(true)}><UserCircle size={22}/><span>{newId?memberName(state,newId):'选择一位新负责人'}</span><CaretRight size={17}/></button>{children.length>0&&<div className="handover-scope"><label><input type="checkbox" checked={includeChildren} onChange={e=>setIncludeChildren(e.target.checked)} disabled={!!blocked||!eligible.length}/>同时交接下级中由{memberName(state,previous)}负责的内容（{eligible.length} 项）</label><small>含回收站 {eligible.filter(n=>n.deletedAt).length} 项；其他负责人负责的 {children.length-eligible.length} 项保持不变。</small></div>}{preview&&<div className="handover-preview"><strong>本次交接 {preview.changedCount} 项，保存后立即生效</strong><p>新负责人：{memberName(state,newId)} · 可管理</p><p>原负责人在当前对象：{oldAccess.label}{oldAccess.sources.length?`（${oldAccess.sources.join('、')}）`:''}</p><small>本次范围中，原负责人仍可管理 {preview.remainingManagedCount} 项。仅退出原负责人身份，公司、部门及其他个人授权继续生效。组织归属、历史创建人、内容与链接不变。</small></div>}{(error||blocked||previewError)&&<p className="access-error" role="alert">{error||blocked||previewError}</p>}<footer><button type="button" onClick={onClose}>取消</button><button type="submit" className="primary" disabled={!newId||!!blocked||!!previewError}>确认交接</button></footer></form>{picker&&<SubjectPicker backdropClassName="handover-subject-backdrop" title="选择新负责人" personOnly single state={state} ownerIds={[previous]} selected={newId?[{type:'person',id:newId}]:[]} onClose={()=>setPicker(false)} onConfirm={selected=>{setNewId(selected[0]?.id||'');setError('');setPicker(false);}}/>}</div>,document.body);
+}

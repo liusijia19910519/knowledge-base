@@ -1,3 +1,4 @@
+import { validateContentDestination } from './destinations.js';
 import { can, nodeRole, spaceRole } from './store.js';
 import { fileType } from './fileTypes.js';
 import { activeNode, creationAccess, librariesForView, libraryRights, validateAccess } from './access.js';
@@ -9,7 +10,7 @@ export function parseContent(format,body) {
   try {const value=JSON.parse(body);if(format==='sheet'&&Array.isArray(value.rows)&&value.rows.length&&value.rows.every(r=>Array.isArray(r)&&r.length))return value;if(format==='slides'&&Array.isArray(value.slides)&&value.slides.length)return value;} catch {}
   return JSON.parse(initialContent(format));
 }
-export function contentText(node,body=node.body||'') {
+export function contentText(node,body=node.creationDraft?(node.creationDraftBody??node.body??''):(node.body||'')) {
   if(node.format==='sheet')return parseContent('sheet',body).rows.map(r=>r.join('\t')).join('\n');
   if(node.format==='slides')return parseContent('slides',body).slides.map(s=>[s.title,s.body].filter(Boolean).join('\n')).join('\n\n');
   return body;
@@ -33,12 +34,8 @@ export function writableFolders(state,spaceId,userId) {
 }
 export function validateDestination(state,{spaceId,parentId='',lockedSpaceId='',category=''},userId) {
   if(lockedSpaceId&&spaceId!==lockedSpaceId)throw Error('只能在当前知识库内新建');
-  if(!spaceId)throw Error('请选择保存的知识库');
-  const space=state.spaces.find(s=>s.id===spaceId);
-  if(!space||space.deletedAt)throw Error('目标知识库已不存在或已删除，请重新选择');
-  if(!writableLibraries(state,userId,category).some(s=>s.id===spaceId))throw Error('当前没有该位置的编辑权限，请重新选择');
-  if(!parentId&&!libraryRights(state,space,userId).edit)throw Error('没有知识库根目录的编辑权限，请选择获授权的目录');
-  if(parentId){const folder=state.nodes.find(n=>n.id===parentId);if(!folder||!activeFolder(state,folder,spaceId))throw Error('目标目录已不存在，请重新选择');if(!can(nodeRole(state,folder,userId),'edit'))throw Error('没有目标目录的编辑权限');}
+  validateContentDestination(state,{spaceId,parentId},userId);
+  if(category&&!writableLibraries(state,userId,category).some(s=>s.id===spaceId))throw Error('当前没有该位置的编辑权限，请重新选择');
   return {spaceId,parentId};
 }
 export function validateContentName(name) {
@@ -77,6 +74,6 @@ export function uploadedExtension(node){const value=node.format==='file'?(node.f
 export function createContent(state,fields,userId,id=crypto.randomUUID()) {
   const name=validateCreation(state,fields,userId),time=new Date().toISOString();
   const policy=creationAccess(state,fields);
-  const node={id,spaceId:fields.spaceId,parentId:fields.parentId||'',type:fields.format==='folder'?'folder':'doc',format:fields.format==='folder'?undefined:fields.format,name,body:fields.format==='folder'?'':initialContent(fields.format),ownerId:userId,favorite:false,createdAt:time,updatedAt:time,deletedAt:'',permissionMode:'layered',localAccess:{subjects:[],visibility:'private',grants:{}},inheritedExclusions:[],inherit:policy.inherit,access:policy.inherit?undefined:validateAccess(state,policy.access,[userId]),members:[],faq:false};
+  const node={id,spaceId:fields.spaceId,parentId:fields.parentId||'',...(fields.creationDraft&&fields.format!=='folder'?{creationDraft:true,draftOwnerId:userId}:{}),type:fields.format==='folder'?'folder':'doc',format:fields.format==='folder'?undefined:fields.format,name,body:fields.format==='folder'?'':initialContent(fields.format),ownerId:userId,creatorId:userId,responsibleId:userId,ownership:state.spaces.find(s=>s.id===fields.spaceId)?.kind==='personal'?'personal':'organization',favorite:false,createdAt:time,updatedAt:time,deletedAt:'',permissionMode:'layered',localAccess:{subjects:[],visibility:'private',grants:{}},inheritedExclusions:[],inherit:policy.inherit,access:policy.inherit?undefined:validateAccess(state,policy.access,[userId]),members:[],faq:false};
   return {node,state:{...state,nodes:[...state.nodes,node],recents:node.type==='doc'?[id,...state.recents.filter(x=>x!==id)].slice(0,30):state.recents}};
 }

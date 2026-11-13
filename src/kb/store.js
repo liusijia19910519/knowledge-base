@@ -60,7 +60,7 @@ export function seedState() {
     spaces: [
       {id:'space-personal',kind:'personal',name:'周宁的个人知识库',description:'仅自己可见的草稿和备忘',ownerId:'zhou-ning',icon:{kind:'preset',key:'book'},cover:{kind:'preset',key:'mist'},access:{subjects:[]},members:[]},
       {id:'space-handbook',kind:'shared',name:'产品手册库',description:'产品部协作，授权范围不改变知识库类型',ownerId:'zhou-ning',icon:{kind:'preset',key:'manual'},cover:{kind:'preset',key:'glass'},access:{subjects:[{type:'department',id:'product',role:'editor'},{type:'person',id:'lin-xia',role:'downloader'}]},members:[]},
-      {id:'space-retro',kind:'shared',name:'交付复盘库',description:'文件创建者与上级文件夹创建者共同管理内容',ownerId:'zhao-heng',icon:{kind:'preset',key:'notes'},cover:{kind:'preset',key:'sand'},access:{subjects:[{type:'person',id:'zhou-ning',role:'manager'},{type:'department',id:'delivery',role:'editor'}]},members:[]},
+      {id:'space-retro',kind:'shared',name:'交付复盘库',description:'当前负责人及上级文件夹负责人共同管理内容',ownerId:'zhao-heng',icon:{kind:'preset',key:'notes'},cover:{kind:'preset',key:'sand'},access:{subjects:[{type:'person',id:'zhou-ning',role:'manager'},{type:'department',id:'delivery',role:'editor'}]},members:[]},
       {id:'space-company-share',kind:'shared',name:'公司协作资料',description:'授权全公司查看，仍然属于共享知识库',ownerId:'chen-ke',icon:{kind:'preset',key:'chat'},cover:{kind:'preset',key:'mint'},access:{subjects:[{type:'company',id:'beichen-demo',role:'viewer'},{type:'person',id:'zhou-ning',role:'editor'}]},members:[]},
       {id:'space-plaza',kind:'plaza',name:'组织知识广场',description:'公司全员始终可查看，其他操作单独授权',ownerId:'zhao-heng',icon:{kind:'preset',key:'plane'},cover:{kind:'preset',key:'lavender'},access:{subjects:[{type:'person',id:'zhou-ning',role:'editor'}]},members:[]},
       {id:'space-chen-personal',kind:'personal',name:'陈可的个人知识库',description:'个人资料仅本人可见',ownerId:'chen-ke',icon:{kind:'preset',key:'book'},access:{subjects:[]},members:[]},
@@ -68,10 +68,10 @@ export function seedState() {
     nodes: [
       {id:'doc-faq',spaceId:'space-handbook',parentId:'',type:'doc',format:'doc',name:'报销需要哪些材料',body:'差旅报销需要发票、行程单和部门负责人确认。市内交通只保留电子发票。',ownerId:'zhou-ning',favorite:true,updatedAt:daysAgo(1),deletedAt:'',faq:true},
       {id:'folder-guide',spaceId:'space-handbook',parentId:'',type:'folder',name:'功能说明',body:'',ownerId:'zhou-ning',updatedAt:daysAgo(3),deletedAt:''},
-      {id:'doc-guide',spaceId:'space-handbook',parentId:'folder-guide',type:'doc',format:'doc',name:'知识库怎么授权',body:'共享知识库可授权公司、部门和人员。文件创建者和当前上级文件夹创建者拥有受保护的管理权限。移动后重置普通授权，重新继承目标位置。',ownerId:'chen-ke',updatedAt:daysAgo(2),deletedAt:''},
-      {id:'doc-note',spaceId:'space-personal',parentId:'',type:'doc',format:'doc',name:'本周要整理的口径',body:'个人资料协作前请移动到共享知识库或知识广场。移动保留文件，复制产生独立副本。',ownerId:'zhou-ning',updatedAt:daysAgo(0),deletedAt:''},
+      {id:'doc-guide',spaceId:'space-handbook',parentId:'folder-guide',type:'doc',format:'doc',name:'知识库怎么授权',body:'共享知识库可授权公司、部门和人员。历史创建人保留创建记录；当前负责人和上级负责人拥有受保护的管理权限，可交接负责人。移动后重置普通授权，重新继承目标位置。',ownerId:'chen-ke',updatedAt:daysAgo(2),deletedAt:''},
+      {id:'doc-note',spaceId:'space-personal',parentId:'',type:'doc',format:'doc',name:'本周要整理的口径',body:'个人资料协作前请移动到共享知识库或知识广场，并确认组织归属和目标权限。进入组织库后原件不能移回个人库；有查看并下载权限时可保留个人副本。',ownerId:'zhou-ning',updatedAt:daysAgo(0),deletedAt:''},
       {id:'folder-retro',spaceId:'space-retro',parentId:'',type:'folder',name:'项目复盘资料',body:'',ownerId:'zhou-ning',updatedAt:daysAgo(3),deletedAt:''},
-      {id:'doc-retro',spaceId:'space-retro',parentId:'folder-retro',type:'doc',format:'doc',name:'华东项目移交清单',body:'此文件由赵衡创建，周宁作为上级文件夹创建者同样可管理。周宁不能把此文件直接移入个人库，但可复制。',ownerId:'zhao-heng',updatedAt:daysAgo(4),deletedAt:''},
+      {id:'doc-retro',spaceId:'space-retro',parentId:'folder-retro',type:'doc',format:'doc',name:'华东项目移交清单',body:'此文件由赵衡创建，周宁作为上级文件夹负责人同样可管理。组织原件不能移入个人库，有查看并下载权限时可复制个人副本。',ownerId:'zhao-heng',updatedAt:daysAgo(4),deletedAt:''},
       {id:'doc-company',spaceId:'space-company-share',parentId:'',type:'doc',format:'doc',name:'公司协作说明',body:'所有公司成员可在线查看，但这个知识库仍属于共享类型。仅查看不包含下载和复制。',ownerId:'chen-ke',updatedAt:daysAgo(1),deletedAt:''},
       {id:'doc-plaza',spaceId:'space-plaza',parentId:'',type:'doc',format:'doc',name:'组织知识使用说明',body:'广场内容始终保证公司全员查看。可额外授权更高权限；撤销额外公司授权后恢复为全员查看。',ownerId:'zhao-heng',updatedAt:daysAgo(1),deletedAt:''},
     ],
@@ -108,10 +108,21 @@ export function loadState() {
     const parsed=JSON.parse(localStorage.getItem(KEY)||'null');
     if(parsed?.businessVersion===DATA_VERSION&&parsed.org&&Array.isArray(parsed.nodes))return normalizeState(parsed);
   }catch{}
-  const fresh=normalizeState(seedState());saveState(fresh);localStorage.removeItem('kb-prototype-v1');return fresh;
+  const fresh=saveState(normalizeState(seedState()));localStorage.removeItem('kb-prototype-v1');return fresh;
 }
-export function saveState(state){if(state.businessVersion!==DATA_VERSION)throw Error('原型数据版本已更新，请刷新页面');localStorage.setItem(KEY,JSON.stringify(state));}
-export function resetState(){const next=normalizeState(seedState());saveState(next);return next;}
+export function saveState(state,options={}){
+  if(state.businessVersion!==DATA_VERSION)throw Error('原型数据版本已更新，请刷新页面');
+  // Best-effort optimistic protection; no cross-tab transaction infrastructure.
+  if(Object.prototype.hasOwnProperty.call(options,'expectedRevision')){
+    let current;try{current=JSON.parse(localStorage.getItem(KEY)||'null');}catch{throw Error('本地资料已变化，请刷新后重试；本次操作未覆盖已有内容。');}
+    if((current?.writeRevision||'')!==(options.expectedRevision||'')){
+      const error=Error('资料已在其他标签页更新，本次操作未保存，请核对最新内容后重试。');error.code='STALE_WRITE';throw error;
+    }
+  }
+  const saved={...state,writeRevision:crypto.randomUUID()};
+  localStorage.setItem(KEY,JSON.stringify(saved));return saved;
+}
+export function resetState(){return saveState(normalizeState(seedState()));}
 
 export function memberName(state, id) {
   return state.members.find((item) => item.id === id)?.name || "未知成员";

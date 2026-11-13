@@ -1,3 +1,5 @@
+import { didShareItem } from './sharing.js';
+import { responsibleId } from './ownership.js';
 import { librariesForView, contentRights, effectiveAccess, libraryType } from './access.js';
 import { favorites } from './fileActions.js';
 
@@ -36,8 +38,8 @@ export function recentVisits(state,userId){if(owns(state.recentVisitsByUser,user
 export function visitContent(state,id,userId){const node=state.nodes.find(n=>n.id===id);if(!contentRights(state,node,userId).view)throw Error('当前没有查看权限');const records=[{id,visitedAt:new Date().toISOString()},...recentVisits(state,userId).filter(r=>r.id!==id)].slice(0,100);return {...state,recentVisitsByUser:{...(state.recentVisitsByUser||{[state.meId]:recentVisits(state,state.meId)}),[userId]:records},...(userId===state.meId?{recents:records.map(r=>r.id)}:{})};}
 export function homeEntries(state,userId,tab,query=''){
   const visits=recentVisits(state,userId),favoriteIds=new Set(favorites(state,userId));
-  const available=state.nodes.filter(n=>contentRights(state,n,userId).view).filter(n=>!query.trim()||`${n.name} ${n.body||''}`.includes(query.trim()));
-  let result=available.filter(n=>tab==='recent'?visits.some(r=>r.id===n.id):tab==='favorite'?favoriteIds.has(n.id):tab==='mine'?n.ownerId===userId&&libraryType(state.spaces.find(s=>s.id===n.spaceId))!=='personal'&&effectiveAccess(state,n).visibility!=='private':n.ownerId!==userId&&state.spaces.find(s=>s.id===n.spaceId)?.ownerId!==userId&&libraryType(state.spaces.find(s=>s.id===n.spaceId))==='shared');
+  const available=state.nodes.filter(n=>contentRights(state,n,userId).view).filter(n=>!query.trim()||`${n.name} ${(n.creationDraft?n.creationDraftBody:n.body)||''}`.includes(query.trim()));
+  let result=available.filter(n=>tab==='recent'?visits.some(r=>r.id===n.id):tab==='favorite'?favoriteIds.has(n.id):tab==='mine'?didShareItem(state,n,userId):responsibleId(n)!==userId&&responsibleId(state.spaces.find(s=>s.id===n.spaceId))!==userId&&libraryType(state.spaces.find(s=>s.id===n.spaceId))==='shared');
   result=[...new Map(result.map(n=>[n.id,n])).values()];
   return result.sort((a,b)=>tab==='recent'?visits.findIndex(r=>r.id===a.id)-visits.findIndex(r=>r.id===b.id):new Date(b.updatedAt||0)-new Date(a.updatedAt||0));
 }

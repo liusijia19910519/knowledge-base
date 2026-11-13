@@ -19,9 +19,12 @@ export function permissionRoleOptions(value,actions=[{value:'remove',label:'移�
   ];
 }
 
-export default function PermissionRolePicker({label,value,onChange,options,groupLabel='',disabled=false}){
+export default function PermissionRolePicker({label,value,displayValue=value,onChange,options,groupLabel='',disabled=false}){
   const [open,setOpen]=useState(false),[position,setPosition]=useState(null),trigger=useRef(null),menu=useRef(null),startFocus=useRef('current'),id=useId();
-  const selected=options.find(item=>item.value===value),caption=selected?.label||'选择权限';
+  const selected=options.find(item=>item.value===displayValue),caption=selected?.label||PERMISSION_ROLES.find(([id])=>id===displayValue)?.[1]||'选择权限';
+  const [status,setStatus]=useState(''),changed=useRef(false);
+  useEffect(()=>{if(!changed.current)return;changed.current=false;setStatus(displayValue!==value?`本项：${PERMISSION_ROLES.find(([id])=>id===value)?.[1]||'原有权限'}；实际：${caption}`:'');},[value,displayValue]);
+  useEffect(()=>{if(!status)return;const timer=setTimeout(()=>setStatus(''),5000);return()=>clearTimeout(timer);},[status]);
   const close=(restore=true)=>{
     const fallback=trigger.current?.closest('[role="dialog"]')?.querySelector('.grant-add,button[type="submit"]');
     setOpen(false);setPosition(null);
@@ -69,10 +72,11 @@ export default function PermissionRolePicker({label,value,onChange,options,group
   },[open]);
   return <div className="permission-role-control"><button ref={trigger} type="button" className="permission-role-trigger" aria-label={label} aria-haspopup="menu" aria-expanded={open} aria-controls={open?id:undefined} disabled={disabled} onClick={()=>{if(open)close();else{startFocus.current='current';setOpen(true);}}} onKeyDown={e=>{if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();startFocus.current=e.key==='ArrowUp'?'last':'current';setOpen(true);}}}><span>{caption}</span><CaretDown size={12}/></button>
     {open&&createPortal(<div ref={menu} id={id} className="permission-role-menu" role="menu" aria-label={label} style={position||{top:0,left:0,opacity:0}} onClick={e=>e.stopPropagation()}>
-      {groupLabel&&<p className="permission-role-group">{groupLabel}</p>}
+      {groupLabel&&<p className="permission-role-group">{groupLabel}</p>}{displayValue!==value&&<p className="permission-role-effective">实际生效：{caption}</p>}
       {options.map(option=>{const detail=roleDetails[option.value],Icon=option.danger?Trash:detail?.Icon||Eye;
-        return <button type="button" role={option.danger?'menuitem':'menuitemradio'} aria-checked={option.danger?undefined:option.value===value} disabled={option.disabled} className={`${option.danger?'is-danger':''} ${option.separated?'is-separated':''}`} key={option.value} onClick={()=>{close();onChange(option.value);}}><Icon size={17}/><span><b>{option.label}</b>{(option.description||detail?.description)&&<small>{option.description||detail.description}</small>}</span>{!option.danger&&option.value===value&&<Check size={15} weight="bold"/>}</button>;
+        return <button type="button" role={option.danger?'menuitem':'menuitemradio'} aria-checked={option.danger?undefined:option.value===value} disabled={option.disabled} className={`${option.danger?'is-danger':''} ${option.separated?'is-separated':''}`} key={option.value} onClick={()=>{changed.current=true;close();onChange(option.value);}}><Icon size={17}/><span><b>{option.label}</b>{(option.description||detail?.description)&&<small>{option.description||detail.description}</small>}</span>{!option.danger&&option.value===value&&<Check size={15} weight="bold"/>}</button>;
       })}
     </div>,document.body)}
+    {status&&<span className="permission-role-status" role="status">{status}</span>}
   </div>;
 }

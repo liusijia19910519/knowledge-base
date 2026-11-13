@@ -68,7 +68,7 @@ test('批量删除恢复不复活早先独立删除的项目',()=>{
   s=performBatch(s,{ids:[a.id,folder.id],spaceId:lib.id,action:'delete'},s.meId).state;s=restoreContent(s,folder.id,s.meId);assert.equal(s.nodes.find(n=>n.id===child.id).deletedAt,'earlier');assert.ok(s.nodes.find(n=>n.id===a.id).deletedAt);
 });
 test('各项分别有目标但整批没有共同可编辑位置时禁用',()=>{
-  const {s,lib,folder,target}=fixture();s.spaces.at(-1).access=accessFromSubjects(s,[person('chen-ke','viewer')]);
+  const {s,lib,folder,target}=fixture();s.spaces=s.spaces.filter(space=>space.id===lib.id);s.nodes=s.nodes.filter(node=>node.spaceId===lib.id);s.spaces.at(-1).access=accessFromSubjects(s,[person('chen-ke','viewer')]);
   for(const node of [folder,target]){node.localAccess=accessFromSubjects(s,[person('chen-ke','manager')]);}
   assert.equal(actionReason(s,folder,'chen-ke','copy'),'');assert.equal(actionReason(s,target,'chen-ke','copy'),'');
   assert.throws(()=>batchPreflight(s,{ids:[folder.id,target.id],spaceId:lib.id,action:'copy'},'chen-ke'),/整批/);

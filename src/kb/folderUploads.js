@@ -1,7 +1,7 @@
 import { createContent, uniqueContentName, validateDestination } from './contentCreation.js';
 
 export const MAX_UPLOAD_FILES=20;
-export const MAX_FOLDER_FILES=200;
+export const MAX_FOLDER_FILES=20;
 export const uploadPath=file=>file.webkitRelativePath||file.name;
 export const uploadLimit=files=>files.some(file=>file.webkitRelativePath)?MAX_FOLDER_FILES:MAX_UPLOAD_FILES;
 export function validateUploadSelection(files){
@@ -34,4 +34,13 @@ export function prepareUploadLocation(state,fields,userId){
     }
   }
   return {state:current,fields:{...fields,parentId},assignments};
+}
+
+// Use committed names in the result list, including collision suffixes.
+export function uploadResultPath(state,node,baseParentId=''){
+  const parts=[],seen=new Set();let current=node;
+  while(current&&current.id!==baseParentId&&!seen.has(current.id)){
+    seen.add(current.id);parts.unshift(current.name);current=state.nodes.find(n=>n.id===current.parentId);
+  }
+  return parts.join('/');
 }

@@ -11,13 +11,14 @@ export function locationLabel(state,spaceId,parentId){
   return library?[library.name,...folderTrail(state,parentId).map(id=>state.nodes.find(n=>n.id===id)?.name)].filter(Boolean).join(' / '):'';
 }
 export function useLocationDialog(root,onClose){
+  const closeRef=useRef(onClose);closeRef.current=onClose;
   useEffect(()=>{
     const previous=document.activeElement;
     const firstFocus=root.current?.querySelector('[data-name-field],.location-search input:not(:disabled),.location-categories button:not(:disabled)')||root.current?.querySelector('input:not(:disabled),textarea:not(:disabled),select:not(:disabled),button:not(:disabled)');firstFocus?.focus();
     root.current?.querySelector('.location-node[aria-pressed="true"]')?.scrollIntoView({block:'nearest'});
     const keys=e=>{
       if(e.target.closest?.('[role="dialog"]')!==root.current)return;
-      if(e.key==='Escape'){e.preventDefault();e.stopPropagation();onClose();}
+      if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closeRef.current();}
       if(e.key==='Tab'){
         const elements=[...root.current.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),a[href]')].filter(el=>el.getClientRects().length&&!el.closest('[inert]')),first=elements[0],last=elements.at(-1);
         if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}
@@ -64,7 +65,7 @@ export function LocationBrowser({state,userId,value,onChange,lockedSpaceId='',lo
   </>;
 }
 
-export default function LocationPicker({state,userId,value,lockedSpaceId='',lockedView='',blockedIds=[],onConfirm,onClose,title='选择保存位置',description='',confirmText='确认位置',nameValue,onNameChange,disabledReason='',destinationReason=()=>'',allowedViews=[],onPositionChange,selectionMessage,emptyLabel='请选择有编辑权限的目标位置'}){
+export default function LocationPicker({state,userId,value,lockedSpaceId='',lockedView='',blockedIds=[],onConfirm,onClose,title='选择保存位置',description='',confirmText='确认位置',nameValue,onNameChange,nameLabel='副本名称',disabledReason='',destinationReason=()=>'',allowedViews=[],onPositionChange,selectionMessage,selectionDetails,emptyLabel='请选择有编辑权限的目标位置'}){
   const [position,setPosition]=useState(value),[error,setError]=useState(''),root=useRef(null);
   useLocationDialog(root,onClose);
   const sameParent=confirmText==='确认移动'&&position.spaceId===value.spaceId&&(position.parentId||'')===(value.parentId||'');
@@ -75,10 +76,11 @@ export default function LocationPicker({state,userId,value,lockedSpaceId='',lock
     catch(err){setError(err.message);}
   };
   return <div className="knowledge-product-dialog-backdrop new-create-backdrop location-picker-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}><form ref={root} className="location-picker" role="dialog" aria-modal="true" aria-label={title} onSubmit={confirm}>
-    <header><div><h2>{title}</h2><p>{description||(lockedSpaceId?'当前知识库已固定，可选择库内有编辑权限的文件夹。':'选择知识空间，再选择知识库或文件夹。')}</p></div><button type="button" className="location-close" aria-label="关闭位置选择" onClick={onClose}><X size={19}/></button></header>
-    {onNameChange&&<label className="location-name-field">副本名称<input data-name-field aria-label="副本名称" value={nameValue} maxLength={100} onChange={e=>{onNameChange(e.target.value);setError('');}}/><small>{nameValue.length} / 100</small></label>}
+    <header><div><h2 title={title}>{title}</h2>{description&&<p>{description}</p>}</div><button type="button" className="location-close" aria-label="关闭位置选择" onClick={onClose}><X size={19}/></button></header>
+    {onNameChange&&<label className="location-name-field">{nameLabel}<input data-name-field aria-label={nameLabel} value={nameValue} maxLength={100} onChange={e=>{onNameChange(e.target.value);setError('');}}/><small>{nameValue.length} / 100</small></label>}
     <LocationBrowser emptyLabel={emptyLabel} state={state} userId={userId} value={position} onChange={next=>{setPosition(next);onPositionChange?.(next);setError('');}} destinationReason={destinationReason} allowedViews={allowedViews} lockedSpaceId={lockedSpaceId} lockedView={lockedView} blockedIds={blockedIds}/>
+    {typeof selectionDetails==='function'?selectionDetails(position):selectionDetails}
     {(error||disabledReason||choiceReason)&&<p className="new-create-error" role="alert">{error||disabledReason||choiceReason}</p>}
-    <footer><span>{sameParent?'当前位置未改变，请选择其他目录':position.spaceId?(selectionMessage?.(position)||'已选择 1 个保存位置'):'请选择一个保存位置'}</span><button type="button" onClick={onClose}>取消</button><button type="submit" className="location-confirm" disabled={!position.spaceId||sameParent||!!disabledReason||!!choiceReason}>{confirmText}</button></footer>
+    <footer><span>{sameParent?'当前位置未改变，请选择其他目录':position.spaceId?(selectionMessage?.(position)||''):'请选择一个保存位置'}</span><button type="button" onClick={onClose}>取消</button><button type="submit" className="location-confirm" disabled={!position.spaceId||sameParent||!!disabledReason||!!choiceReason}>{confirmText}</button></footer>
   </form></div>;
 }

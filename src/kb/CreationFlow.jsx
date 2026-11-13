@@ -7,21 +7,16 @@ import { loadState } from './store.js';
 import { contentView } from './access.js';
 import { LocationBrowser, useLocationDialog } from './LocationPicker.jsx';
 import './creation.css';
+import useHoverMenu from './useHoverMenu.js';
 
 export function CreateMenu({variant='compact',onChoose,disabled=false,reason=''}) {
-  const [open,setOpen]=useState(false),root=useRef(null),trigger=useRef(null);
-  useEffect(()=>{
-    if(!open)return;
-    const outside=e=>{if(!root.current?.contains(e.target))setOpen(false);};
-    const keys=e=>{if(e.key==='Escape'){e.stopPropagation();setOpen(false);trigger.current?.focus();}if(['ArrowDown','ArrowUp'].includes(e.key)&&root.current?.contains(document.activeElement)){e.preventDefault();const buttons=[...root.current.querySelectorAll('[role=menuitem]')],i=buttons.indexOf(document.activeElement);buttons[(i+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length]?.focus();}};
-    document.addEventListener('pointerdown',outside);document.addEventListener('keydown',keys);root.current?.querySelector('[role=menuitem]')?.focus();return()=>{document.removeEventListener('pointerdown',outside);document.removeEventListener('keydown',keys);};
-  },[open]);
-  return <div ref={root} className={`new-create-menu ${variant==='library'?'knowledge-action-menu':''} variant-${variant}`}><button ref={trigger} type="button" className="new-create-trigger" aria-label={variant==='library'?'新建内容':'新建'} aria-haspopup="menu" aria-expanded={open} disabled={disabled} title={disabled?reason:undefined} onClick={()=>setOpen(v=>!v)}><Plus size={variant==='compact'?16:22}/>{variant==='compact'?'新建':<span><strong>{variant==='home'?'新建':'新建内容'}</strong><small>文档、表格、幻灯片或文件夹</small></span>}<CaretDown size={14}/></button>{open&&<div className="new-create-options" role="menu" aria-label="选择新建类型">{CONTENT_TYPES.map(([format,label])=>{return <button type="button" role="menuitem" key={format} onClick={()=>{setOpen(false);trigger.current?.focus();onChoose(format);}}><ContentIcon aria-hidden="true" node={{type:format==='folder'?'folder':'doc',format}} size={16}/><span>{label}</span></button>;})}</div>}</div>;
+  const {open,root,trigger,close,rootProps,triggerProps}=useHoverMenu(disabled);
+  return <div ref={root} {...rootProps} className={`new-create-menu ${variant==='library'?'knowledge-action-menu':''} variant-${variant}`}><button ref={trigger} type="button" className="new-create-trigger" aria-label={variant==='library'?'新建内容':'新建'} aria-haspopup="menu" aria-expanded={open} disabled={disabled} title={disabled?reason:undefined} {...triggerProps}><Plus size={variant==='compact'?16:22}/>{variant==='compact'?'新建':<span><strong>{variant==='home'?'新建':'新建内容'}</strong></span>}<CaretDown size={14}/></button>{open&&<div className="new-create-options" role="menu" aria-label="选择新建类型">{CONTENT_TYPES.map(([format,label])=>{return <button type="button" role="menuitem" key={format} onClick={()=>{close(true);onChoose(format);}}><ContentIcon aria-hidden="true" node={{type:format==='folder'?'folder':'doc',format}} size={16}/><span>{label}</span></button>;})}</div>}</div>;
 }
 
 export function launchDocument(update,fields,userId){
   validateCreation(loadState(),fields,userId);const editor=window.open('about:blank','_blank');if(editor)editor.opener=null;
-  try{let result;update(latest=>{result=createContent(latest,fields,userId);return result.state;});const node=result.node,view=contentView(result.state,node,userId,fields.view),url=`${window.location.href.split('#')[0]}#/doc/${node.id}?edit=1&view=${view}${node.parentId?`&folder=${node.parentId}`:''}`;if(editor)editor.location.replace(url);return {node,url,opened:!!editor};}catch(error){editor?.close();throw error;}
+  try{let result;update(latest=>{result=createContent(latest,{...fields,creationDraft:true},userId);return result.state;});const node=result.node,view=contentView(result.state,node,userId,fields.view),url=`${window.location.href.split('#')[0]}#/doc/${node.id}?edit=1&view=${view}${node.parentId?`&folder=${node.parentId}`:''}`;if(editor)editor.location.replace(url);return {node,url,opened:!!editor};}catch(error){editor?.close();throw error;}
 }
 export default function CreationDialog({state,userId,context,update,onClose,onCreated,onFolderLocation}) {
   const [position,setPosition]=useState({spaceId:context.spaceId||'',parentId:context.parentId||'',view:context.view||context.category||''});

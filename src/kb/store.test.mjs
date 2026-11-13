@@ -19,12 +19,12 @@ test('restored data completes missing member lists without mutating cached recor
   assert.doesNotThrow(()=>visibleNodes(normalized,normalized.meId));
 });
 
-test('missing membership falls back to the existing inherited role, not extra access', () => {
+test('membership arrays do not override current department grants or freeze inheritance', () => {
   const state=seedState();delete state.spaces[1].members;delete state.nodes[0].members;
   assert.equal(spaceRole(state,state.spaces[1],'chen-ke').view,true);
-  assert.equal(spaceRole(state,state.spaces[1],'chen-ke').edit,false);
+  assert.equal(spaceRole(state,state.spaces[1],'chen-ke').edit,true);
   assert.equal(nodeRole(state,state.nodes[0],'chen-ke').view,true);
-  assert.equal(nodeRole(state,{...state.nodes[0],inherit:false},'chen-ke').view,false);
+  assert.equal(nodeRole(state,{...state.nodes[0],inherit:false},'chen-ke').view,true);
   assert.equal(nodeRole(state,{...state.nodes[0],spaceId:'missing'},'chen-ke').view,false);
 });
 
@@ -34,8 +34,8 @@ test('existing grants, custom fields, folders and deleted records survive normal
   assert.deepEqual(normalized.internalShares,state.internalShares);
   for(const [index,node] of state.nodes.entries())for(const [key,value] of Object.entries(node))assert.deepEqual(normalized.nodes[index][key],value);
   assert.ok(normalized.nodes.every(n=>n.permissionMode==='layered'));
-  assert.equal(normalized.accessModelVersion,2);
-  assert.deepEqual(normalized.spaces.map(({access,...s})=>s),state.spaces);
+  assert.equal(normalized.accessModelVersion,3);
+  for(const [i,library] of state.spaces.entries())for(const [key,value] of Object.entries(library))assert.deepEqual(normalized.spaces[i][key],value);assert.equal(normalized.spaces[1].responsibleId,state.spaces[1].ownerId);
   assert.equal(nodeRole(normalized,normalized.nodes[4],'lin-xia').view,false);
 });
 

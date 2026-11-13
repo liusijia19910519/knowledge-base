@@ -1,3 +1,4 @@
+import { responsibleId } from './ownership.js';
 import { activeNode, contentRights, libraryRights } from './access.js';
 
 const library=(state,id)=>state.spaces.find(space=>space.id===id);
@@ -16,7 +17,7 @@ export function deleteLibrary(state,id,userId,expected){
 export function restoreLibrary(state,id,userId){
   const space=library(state,id);
   if(!space?.deletedAt||!libraryRights(state,space,userId,true).manage)throw Error('当前没有恢复知识库的管理权限');
-  if(state.spaces.some(item=>item.id!==id&&!item.deletedAt&&item.ownerId===space.ownerId&&item.name.trim().toLocaleLowerCase()===space.name.trim().toLocaleLowerCase()))throw Error('已存在同名知识库，请先重命名现有知识库后再恢复');
+  if(state.spaces.some(item=>item.id!==id&&!item.deletedAt&&responsibleId(item)===responsibleId(space)&&item.name.trim().toLocaleLowerCase()===space.name.trim().toLocaleLowerCase()))throw Error('已存在同名知识库，请先重命名现有知识库后再恢复');
   return {...state,spaces:state.spaces.map(item=>item.id===id?{...item,deletedAt:'',deletedBy:undefined,deleteBatch:undefined}:item),nodes:state.nodes.map(node=>node.spaceId===id&&space.deleteBatch&&node.libraryDeleteBatch===space.deleteBatch?{...node,deletedAt:'',deletedBy:undefined,deleteBatch:undefined,libraryDeleteBatch:undefined}:node)};
 }
 export function permanentlyDeleteLibrary(state,id,userId){
